@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - frontend/survey-website
   workflow_dispatch:
 
 permissions:
