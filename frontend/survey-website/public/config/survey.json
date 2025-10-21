@@ -1,0 +1,69 @@
+{
+  "version": "1.0.0",
+  "meta": {
+    "title": "Perpetual Voting Survey Prototype"
+  },
+  "settings": {
+    "showProgress": true,
+    "storageKey": "perpetual-voting-survey",
+    "storageVersion": "v2",
+    "direction": "auto",
+    "defaultDirection": "ltr",
+    "rtlLocales": ["ar", "fa", "he", "ur"],
+    "pageSequenceSource": "./ordering/default.json",
+    "autosaveKeysToClear": ["survey-open-response"],
+    "language": "he-IL"
+  },
+  "pages": [
+    {
+      "type": "text",
+      "id": "intro",
+      "props": {
+        "title": "ברוכים הבאים",
+        "body": "Thanks for helping us evaluate the upcoming perpetual voting study.",
+        "footnote": "Click Next to begin."
+      }
+    },
+    {
+      "type": "text",
+      "id": "overview",
+      "props": {
+        "title": "What To Expect",
+        "body": "This flow showcases the pagination framework. In production, these steps will include interactive questions and explanations.",
+        "footnote": "Use Back if you would like to review previous steps."
+      }
+    },
+    {
+      "type": "textInput",
+      "id": "open-response",
+      "props": {
+        "prompt": "Describe your expectations for the perpetual voting system.",
+        "helperText": "Share as much detail as you like. We will review this feedback to calibrate the final survey.",
+        "placeholder": "I expect perpetual voting to help us…",
+        "rows": 8,
+        "required": true,
+        "maxLength": 800,
+        "autosaveKey": "survey-open-response"
+      }
+    },
+    {
+      "type": "questionnaire",
+      "id": "participant-profile",
+      "props": {
+        "title": "About You",
+        "description": "A few quick questions help us tailor future explanations and follow-ups.",
+        "summaryKey": "participant",
+        "questionSource": "./questions/participant-profile.json"
+      }
+    },
+    {
+      "type": "text",
+      "id": "finish",
+      "props": {
+        "title": "You Made It!",
+        "body": "This is the final placeholder page. Selecting Submit will complete the flow.",
+        "footnote": "All steps are now complete."
+      }
+    }
+  ]
+}

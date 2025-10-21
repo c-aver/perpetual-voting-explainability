@@ -1,0 +1,38 @@
+{
+  "questions": [
+    {
+      "id": "experience",
+      "prompt": "How familiar are you with participatory budgeting?",
+      "variant": "select",
+      "required": false,
+      "helpText": "Choose the option that best matches your experience so far.",
+      "placeholder": "Select an option",
+      "options": [
+        { "value": "none", "label": "Brand new to the concept" },
+        { "value": "some", "label": "I have read about it or observed a pilot" },
+        { "value": "active", "label": "I have actively participated" }
+      ],
+      "outputKey": ["experience"]
+    },
+    {
+      "id": "pilot-count",
+      "prompt": "How many civic technology pilots have you taken part in?",
+      "variant": "numeric",
+      "required": true,
+      "min": 0,
+      "step": 1,
+      "helpText": "Enter zero if this is your first study.",
+      "outputKey": ["history", "pilotCount"],
+      "meta": { "label": "Pilot Participation Count" }
+    },
+    {
+      "id": "motivation",
+      "prompt": "What motivates you to join the perpetual voting research effort today?",
+      "variant": "shortText",
+      "required": false,
+      "maxLength": 160,
+      "placeholder": "Optional response",
+      "outputKey": ["motivation"]
+    }
+  ]
+}

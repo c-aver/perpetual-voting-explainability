@@ -1,0 +1,18 @@
+{
+  "name": "survey-website",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vite": "^7.1.7",
+    "vitest": "^2.1.3",
+    "jsdom": "^25.0.0"
+  }
+}
