@@ -56,7 +56,8 @@ async function bootstrap(): Promise<void> {
 		},
 		onComplete: (payload) => {
 			paginator.dispose();
-			const response_json = JSON.stringify(payload.dataById, null, 2);
+			const responseJson = JSON.stringify(payload.dataById, null, 2);
+			const submitEndpoint = resolveSubmitEndpoint();
 			app.innerHTML = `
 				<div class="survey-complete">
 					<h2>Thank you!</h2>
@@ -67,34 +68,129 @@ async function bootstrap(): Promise<void> {
 			`;
 			const surveyCompleteElem = app.querySelector('code#survey-complete');
 			if (surveyCompleteElem) {
-				surveyCompleteElem.textContent = response_json;
+				surveyCompleteElem.textContent = responseJson;
 			}
 
-			console.log("Sending survey response to server...");
-			console.log(response_json);
-			const serverResponsePromise = fetch('http://localhost:8080/submit-response', {	// TODO: make address and port correctly configurable
+			console.log('Sending survey response to server...');
+			console.log(responseJson);
+			console.log('POST', submitEndpoint);
+			const serverResponsePromise = fetch(submitEndpoint, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: response_json,
+				body: responseJson,
 			});
 			const serverResponseElem = app.querySelector('code#server-response');
-			if (serverResponseElem) {
-				console.log("Setting visibility");
-				(serverResponseElem.parentNode as HTMLElement).style.visibility = 'hidden';
-				serverResponsePromise
+			const serverResponseContainer = serverResponseElem?.parentElement ?? null;
+			if (serverResponseContainer && serverResponseElem) {
+				serverResponseContainer.style.visibility = 'visible';
+				serverResponseElem.textContent = 'Submitting response...';
+				void serverResponsePromise
 					.then(async (response) => {
-						(serverResponseElem.parentNode as HTMLElement).style.visibility = 'visible';
 						const text = await response.text();
 						serverResponseElem.textContent = text;
+						if (!response.ok) {
+							console.error('Submission failed', response.status, response.statusText, text);
+						}
 					})
-					.catch((error) => console.error(error));
+					.catch((error) => {
+						console.error('Failed to submit survey response', error);
+						serverResponseElem.textContent = `Submission failed: ${error instanceof Error ? error.message : String(error)}`;
+					});
 			}
-			
+			void serverResponsePromise.catch((error) => {
+				if (!serverResponseElem) {
+					console.error('Failed to submit survey response', error);
+				}
+			});
+
 			clearAutosaveEntries(config.settings.autosaveKeysToClear);
 		},
 	});
 
 	paginator.start();
+}
+
+function resolveSubmitEndpoint(): string {
+	const env = import.meta.env as Record<string, string | undefined>;
+	const defaultOrigin = getDefaultOrigin();
+	const baseUrl = env.VITE_SURVEY_API_BASE_URL?.trim();
+	const protocol = env.VITE_SURVEY_API_PROTOCOL?.replace(/:$/, '').trim();
+	const host = env.VITE_SURVEY_API_HOST?.trim();
+	const port = env.VITE_SURVEY_API_PORT?.trim();
+	const path = env.VITE_SURVEY_API_PATH?.trim() || '/submit-response';
+
+	const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+
+	const originFromComponents = () => {
+		if (!host && !protocol && !port) {
+			return undefined;
+		}
+		const effectiveProtocol = protocol || extractProtocol(defaultOrigin) || 'http';
+		const effectiveHost = host || extractHost(defaultOrigin) || 'localhost';
+		const effectivePort = port ?? extractPort(defaultOrigin) ?? '';
+		const portSegment = effectivePort ? `:${effectivePort}` : '';
+		return `${effectiveProtocol}://${effectiveHost}${portSegment}`;
+	};
+
+	const originCandidate = baseUrl || originFromComponents() || defaultOrigin;
+
+	try {
+		return new URL(normalizedPath, originCandidate).toString();
+	} catch (error) {
+		console.warn('Invalid survey API configuration; falling back to default origin.', error);
+		return new URL(normalizedPath, defaultOrigin).toString();
+	}
+}
+
+function getDefaultOrigin(): string {
+	if (typeof window !== 'undefined' && window.location) {
+		const { origin, hostname } = window.location;
+		if (hostname === 'localhost' || hostname === '127.0.0.1') {
+			return 'http://localhost:8080';
+		}
+		if (origin) {
+			return origin;
+		}
+	}
+	return 'http://localhost:8080';
+}
+
+function extractProtocol(origin: string | undefined): string | undefined {
+	if (!origin) {
+		return undefined;
+	}
+	try {
+		const protocol = new URL(origin).protocol;
+		return protocol ? protocol.replace(/:$/, '') : undefined;
+	} catch (error) {
+		console.warn('Unable to parse protocol from origin.', origin, error);
+		return undefined;
+	}
+}
+
+function extractHost(origin: string | undefined): string | undefined {
+	if (!origin) {
+		return undefined;
+	}
+	try {
+		return new URL(origin).hostname;
+	} catch (error) {
+		console.warn('Unable to parse host from origin.', origin, error);
+		return undefined;
+	}
+}
+
+function extractPort(origin: string | undefined): string | undefined {
+	if (!origin) {
+		return undefined;
+	}
+	try {
+		const port = new URL(origin).port;
+		return port || undefined;
+	} catch (error) {
+		console.warn('Unable to parse port from origin.', origin, error);
+		return undefined;
+	}
 }
 
 function applyDocumentDirection(direction: TextDirection): void {
