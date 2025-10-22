@@ -5,7 +5,8 @@ on:
     branches:
       - main
     paths:
-      - frontend/survey-website
+      - frontend/survey-website/**
+      - .github/workflows/deploy-frontend.yml
   workflow_dispatch:
 
 permissions:
