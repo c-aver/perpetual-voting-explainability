@@ -160,7 +160,7 @@ button:disabled {
   align-items: center;
 }
 
-.survey-complete__data {
+.json-display {
   width: 100%;
   max-width: 720px;
   margin-top: 0.5rem;
@@ -168,7 +168,8 @@ button:disabled {
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.35);
   color: inherit;
-  text-align: start;
+  text-align: left;
+  direction: ltr;
   overflow-x: auto;
   font-family: 'Fira Code', 'Source Code Pro', Consolas, monospace;
   font-size: 0.85rem;

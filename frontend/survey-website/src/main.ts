@@ -11,6 +11,7 @@ import type { PageFactoryContext } from './pagination/types.ts';
 import type { TextPageProps } from './pages/text-page.ts';
 import { loadSurveyConfig } from './config/loader.ts';
 import type { LoadedSurveyConfig, TextDirection } from './config/types.ts';
+
 const registry: PageRegistry = {
 	text: (context) => new TextPage(context as PageFactoryContext<TextPageProps, void>),
 	textInput: (context) =>
@@ -55,17 +56,40 @@ async function bootstrap(): Promise<void> {
 		},
 		onComplete: (payload) => {
 			paginator.dispose();
+			const response_json = JSON.stringify(payload.dataById, null, 2);
 			app.innerHTML = `
 				<div class="survey-complete">
 					<h2>Thank you!</h2>
 					<p>Your responses have been recorded.</p>
-					<pre class="survey-complete__data"><code></code></pre>
+					<pre class="json-display"><code id="survey-complete" dir="ltr"></code></pre>
+					<pre class="json-display"><code id="server-response" dir="ltr"></code></pre>
 				</div>
 			`;
-			const codeEl = app.querySelector('code');
-			if (codeEl) {
-				codeEl.textContent = JSON.stringify(payload.dataById, null, 2);
+			const surveyCompleteElem = app.querySelector('code#survey-complete');
+			if (surveyCompleteElem) {
+				surveyCompleteElem.textContent = response_json;
 			}
+
+			console.log("Sending survey response to server...");
+			console.log(response_json);
+			const serverResponsePromise = fetch('http://localhost:8080/submit-response', {	// TODO: make address and port correctly configurable
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: response_json,
+			});
+			const serverResponseElem = app.querySelector('code#server-response');
+			if (serverResponseElem) {
+				console.log("Setting visibility");
+				(serverResponseElem.parentNode as HTMLElement).style.visibility = 'hidden';
+				serverResponsePromise
+					.then(async (response) => {
+						(serverResponseElem.parentNode as HTMLElement).style.visibility = 'visible';
+						const text = await response.text();
+						serverResponseElem.textContent = text;
+					})
+					.catch((error) => console.error(error));
+			}
+			
 			clearAutosaveEntries(config.settings.autosaveKeysToClear);
 		},
 	});
