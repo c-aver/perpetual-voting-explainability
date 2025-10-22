@@ -96,6 +96,8 @@ export class SurveyShell {
       this.navEl,
     );
 
+    this.applyDirection(this.direction);
+
     this.root.replaceChildren(this.wrapper);
   }
 
@@ -147,10 +149,24 @@ export class SurveyShell {
 
   setDirection(direction: TextDirection): void {
     this.direction = direction;
-    this.wrapper.dir = direction;
+    this.applyDirection(direction);
   }
 
   setResetDisabled(disabled: boolean): void {
     this.resetButton.disabled = disabled || !this.options.onReset;
+  }
+
+  private applyDirection(direction: TextDirection): void {
+    this.wrapper.dir = direction;
+
+    if (direction === 'rtl') {
+      this.navActions.replaceChildren(this.nextButton, this.backButton);
+      this.navEl.replaceChildren(this.navActions, this.resetButton);
+      this.progressEl.style.textAlign = 'left';
+    } else {
+      this.navActions.replaceChildren(this.backButton, this.nextButton);
+      this.navEl.replaceChildren(this.resetButton, this.navActions);
+      this.progressEl.style.textAlign = 'right';
+    }
   }
 }

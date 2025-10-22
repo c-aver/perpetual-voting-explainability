@@ -56,7 +56,11 @@ async function bootstrap(): Promise<void> {
 		},
 		onComplete: (payload) => {
 			paginator.dispose();
-			const responseJson = JSON.stringify(payload.dataById, null, 2);
+				const submission = {
+					responses: payload.dataById,
+					pageDurationsMs: payload.pageDurationsMs,
+				};
+				const submissionJson = JSON.stringify(submission, null, 2);
 			const submitEndpoint = resolveSubmitEndpoint();
 			app.innerHTML = `
 				<div class="survey-complete">
@@ -66,18 +70,18 @@ async function bootstrap(): Promise<void> {
 					<pre class="json-display"><code id="server-response" dir="ltr"></code></pre>
 				</div>
 			`;
-			const surveyCompleteElem = app.querySelector('code#survey-complete');
-			if (surveyCompleteElem) {
-				surveyCompleteElem.textContent = responseJson;
+				const surveyCompleteElem = app.querySelector('code#survey-complete');
+				if (surveyCompleteElem) {
+					surveyCompleteElem.textContent = submissionJson;
 			}
 
 			console.log('Sending survey response to server...');
-			console.log(responseJson);
-			console.log('POST', submitEndpoint);
-			const serverResponsePromise = fetch(submitEndpoint, {
+				console.log(submissionJson);
+				console.log('POST', submitEndpoint);
+				const serverResponsePromise = fetch(submitEndpoint, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: responseJson,
+					body: submissionJson,
 			});
 			const serverResponseElem = app.querySelector('code#server-response');
 			const serverResponseContainer = serverResponseElem?.parentElement ?? null;

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Paginator, type PageRegistry } from './paginator.ts';
 import type {
   PageDescriptor,
@@ -38,6 +38,10 @@ class MockPage extends BasePage<string, MockPageProps> {
     return { valid: true, data: message } as const;
   }
 }
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe('Paginator', () => {
   const registry: PageRegistry = {
@@ -119,6 +123,7 @@ describe('Paginator', () => {
     const payload = onComplete.mock.calls[0][0];
     expect(payload.descriptors).toHaveLength(1);
     expect(payload.dataById.final).toBe('Final step');
+    expect(payload.pageDurationsMs.final).toBeGreaterThanOrEqual(0);
   });
 
   it('persists and restores state with storageKey', async () => {
@@ -154,8 +159,11 @@ describe('Paginator', () => {
 
     const storedSnapshot = localStorage.getItem(storageKey);
     expect(storedSnapshot).not.toBeNull();
-    const parsed = storedSnapshot ? JSON.parse(storedSnapshot) as { dataByKey: Record<string, unknown> } : null;
+    const parsed = storedSnapshot
+      ? JSON.parse(storedSnapshot) as { dataByKey: Record<string, unknown>; durationsByKey?: Record<string, number> }
+      : null;
     expect(parsed?.dataByKey?.alpha).toBe('Alpha page');
+    expect(parsed?.durationsByKey?.alpha).toBeDefined();
 
     document.body.innerHTML = '<div id="app"></div>';
     const appSecond = document.querySelector<HTMLDivElement>('#app');
@@ -225,5 +233,58 @@ describe('Paginator', () => {
 
     expect(onReset).toHaveBeenCalledTimes(1);
     confirmSpy.mockRestore();
+  });
+
+  it('tracks per-page durations across navigation', async () => {
+    vi.useFakeTimers();
+    let currentTime = new Date('2025-01-01T00:00:00Z').getTime();
+    vi.setSystemTime(currentTime);
+
+    document.body.innerHTML = '<div id="app"></div>';
+    const app = document.querySelector<HTMLDivElement>('#app');
+    if (!app) throw new Error('Missing app container');
+
+    const descriptors: PageDescriptor<MockPageProps>[] = [
+      { type: 'mock', id: 'first', props: { message: 'First' } },
+      { type: 'mock', id: 'second', props: { message: 'Second' } },
+    ];
+
+    const onComplete = vi.fn<(payload: PaginationCompletePayload) => void>();
+
+    const paginator = new Paginator(app, descriptors, registry, {
+      onComplete,
+    });
+
+    paginator.start();
+
+    const nextButton = app.querySelector<HTMLButtonElement>('button[data-role="next"]');
+    if (!nextButton) throw new Error('Missing next button');
+
+  currentTime += 5000;
+  vi.setSystemTime(currentTime);
+
+    nextButton.click();
+
+    await vi.waitFor(() => {
+      expect(app.querySelector('.survey-shell__content')?.textContent).toContain('Second');
+    });
+
+  currentTime += 3000;
+  vi.setSystemTime(currentTime);
+
+    const submitButton = app.querySelector<HTMLButtonElement>('button[data-role="next"]');
+    if (!submitButton) throw new Error('Missing submit button');
+
+    submitButton.click();
+
+    await vi.waitFor(() => {
+      expect(onComplete).toHaveBeenCalledTimes(1);
+    });
+
+    const payload = onComplete.mock.calls[0][0];
+    expect(payload.pageDurationsMs.first).toBeGreaterThanOrEqual(5000);
+    expect(payload.pageDurationsMs.first).toBeLessThan(6000);
+    expect(payload.pageDurationsMs.second).toBeGreaterThanOrEqual(3000);
+    expect(payload.pageDurationsMs.second).toBeLessThan(4000);
   });
 });

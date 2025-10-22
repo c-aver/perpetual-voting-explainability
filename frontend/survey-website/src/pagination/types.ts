@@ -28,6 +28,7 @@ export interface PageValidationResult<TData = unknown> {
 export interface PaginationCompletePayload {
   descriptors: PageDescriptor[];
   dataById: Record<string, unknown>;
+  pageDurationsMs: Record<string, number>;
 }
 
 export interface PageFactoryContext<TProps = unknown, TData = unknown> {

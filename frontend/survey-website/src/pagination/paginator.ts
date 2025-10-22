@@ -47,6 +47,9 @@ export class Paginator {
   private currentDescriptor?: PageDescriptor;
   private readonly dataByKey = new Map<string, unknown>();
   private readonly visited = new Set<number>();
+  private readonly pageDurations = new Map<string, number>();
+  private currentTimingKey?: string;
+  private currentTimingStart?: number;
   private isTransitioning = false;
   private isComplete = false;
   private readonly flowControls: FlowControls;
@@ -145,6 +148,7 @@ export class Paginator {
       }
 
       this.storeResult(result);
+      this.recordCurrentPageDuration();
       this.currentPage.onLeave();
       this.currentPage.destroy();
 
@@ -172,6 +176,7 @@ export class Paginator {
     this.shell.setError();
 
     try {
+      this.recordCurrentPageDuration();
       this.currentPage.onLeave();
       this.currentPage.destroy();
       await this.renderPageAt(this.currentIndex - 1);
@@ -195,6 +200,7 @@ export class Paginator {
     this.isTransitioning = true;
 
     try {
+      this.recordCurrentPageDuration();
       this.currentPage?.onLeave();
       this.currentPage?.destroy();
       await this.renderPageAt(index);
@@ -246,6 +252,7 @@ export class Paginator {
 
     page.onEnter(savedData);
     page.render();
+    this.beginTimingFor(key);
 
     if (options.notifyChange !== false) {
       this.options.onChange?.(this.getPublicState());
@@ -272,10 +279,12 @@ export class Paginator {
     }
 
     this.isComplete = true;
+    this.recordCurrentPageDuration();
 
     const payload: PaginationCompletePayload = {
       descriptors: [...this.descriptors],
       dataById: this.buildDataSnapshot(),
+      pageDurationsMs: this.buildDurationSnapshot(),
     };
 
     this.options.onComplete?.(payload);
@@ -300,6 +309,32 @@ export class Paginator {
     });
 
     return snapshot;
+  }
+
+  private buildDurationSnapshot(): Record<string, number> {
+    const snapshot: Record<string, number> = {};
+    this.pageDurations.forEach((value, key) => {
+      snapshot[key] = Math.round(value);
+    });
+    return snapshot;
+  }
+
+  private beginTimingFor(key: string): void {
+    this.currentTimingKey = key;
+    this.currentTimingStart = Date.now();
+  }
+
+  private recordCurrentPageDuration(): void {
+    if (!this.currentTimingKey || this.currentTimingStart === undefined) {
+      return;
+    }
+
+    const elapsed = Math.max(0, Date.now() - this.currentTimingStart);
+    const existing = this.pageDurations.get(this.currentTimingKey) ?? 0;
+    this.pageDurations.set(this.currentTimingKey, existing + elapsed);
+    this.currentTimingKey = undefined;
+    this.currentTimingStart = undefined;
+    this.persistState();
   }
 
   private keyFor(descriptor: PageDescriptor, index: number): string {
@@ -349,6 +384,13 @@ export class Paginator {
         this.dataByKey.set(key, value);
       });
 
+      const durationEntries = Object.entries(parsed.durationsByKey ?? {});
+      durationEntries.forEach(([key, value]) => {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          this.pageDurations.set(key, value);
+        }
+      });
+
       if (this.resumeFromStorage) {
         const safeIndex = Number.isInteger(parsed.currentIndex)
           ? Math.min(Math.max(parsed.currentIndex ?? 0, 0), this.descriptors.length - 1)
@@ -371,10 +413,16 @@ export class Paginator {
         data[key] = value;
       });
 
+      const durations: Record<string, number> = {};
+      this.pageDurations.forEach((value, key) => {
+        durations[key] = value;
+      });
+
       const payload: PersistedPaginatorState = {
         version: this.storageVersion,
         currentIndex: this.currentIndex,
         dataByKey: data,
+        durationsByKey: durations,
       };
 
       window.localStorage.setItem(this.storageKey, JSON.stringify(payload));
@@ -406,13 +454,17 @@ export class Paginator {
     }
 
     if (!this.shell) {
+      this.recordCurrentPageDuration();
       this.dataByKey.clear();
       this.visited.clear();
+      this.pageDurations.clear();
       this.currentPage = undefined;
       this.currentDescriptor = undefined;
       this.currentIndex = -1;
       this.initialIndex = 0;
       this.isComplete = false;
+      this.currentTimingKey = undefined;
+      this.currentTimingStart = undefined;
       this.clearStorage();
       this.options.onReset?.();
       return;
@@ -424,6 +476,7 @@ export class Paginator {
     this.shell.setError();
 
     try {
+      this.recordCurrentPageDuration();
       this.currentPage?.onLeave();
       this.currentPage?.destroy();
       this.currentPage = undefined;
@@ -432,7 +485,10 @@ export class Paginator {
       this.initialIndex = 0;
       this.dataByKey.clear();
       this.visited.clear();
+      this.pageDurations.clear();
       this.isComplete = false;
+      this.currentTimingKey = undefined;
+      this.currentTimingStart = undefined;
       this.clearStorage();
 
       this.options.onReset?.();
@@ -455,4 +511,5 @@ interface PersistedPaginatorState {
   currentIndex: number;
   dataByKey: Record<string, unknown>;
   completed?: boolean;
+  durationsByKey?: Record<string, number>;
 }
