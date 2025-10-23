@@ -124,6 +124,7 @@ describe('Paginator', () => {
     expect(payload.descriptors).toHaveLength(1);
     expect(payload.dataById.final).toBe('Final step');
     expect(payload.pageDurationsMs.final).toBeGreaterThanOrEqual(0);
+  expect(payload.pageParameters).toEqual({});
   });
 
   it('persists and restores state with storageKey', async () => {
@@ -286,5 +287,50 @@ describe('Paginator', () => {
     expect(payload.pageDurationsMs.first).toBeLessThan(6000);
     expect(payload.pageDurationsMs.second).toBeGreaterThanOrEqual(3000);
     expect(payload.pageDurationsMs.second).toBeLessThan(4000);
+    expect(payload.pageParameters).toEqual({});
+  });
+
+  it('includes parameter metadata in completion payload when available', async () => {
+    document.body.innerHTML = '<div id="app"></div>';
+    const app = document.querySelector<HTMLDivElement>('#app');
+    if (!app) throw new Error('Missing app container');
+
+    const descriptors: PageDescriptor[] = [
+      {
+        type: 'mock',
+        id: 'templated',
+        paramKey: 'demo',
+        parameterMeta: {
+          templateKey: 'demo',
+          signature: 'template:demo|title=test',
+          parameters: { title: 'Test' },
+        },
+        props: { message: 'Done' },
+      },
+    ];
+
+    const onComplete = vi.fn<(payload: PaginationCompletePayload) => void>();
+
+    const paginator = new Paginator(app, descriptors, registry, {
+      onComplete,
+    });
+
+    paginator.start();
+
+    const submitButton = app.querySelector<HTMLButtonElement>('button[data-role="next"]');
+    if (!submitButton) throw new Error('Missing submit button');
+
+    submitButton.click();
+
+    await vi.waitFor(() => {
+      expect(onComplete).toHaveBeenCalledTimes(1);
+    });
+
+    const payload = onComplete.mock.calls[0][0];
+    expect(payload.pageParameters.templated).toMatchObject({
+      templateKey: 'demo',
+      signature: 'template:demo|title=test',
+      parameters: { title: 'Test' },
+    });
   });
 });

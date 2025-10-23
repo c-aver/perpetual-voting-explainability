@@ -14,19 +14,13 @@ export const fallbackSurveyConfig: SurveyConfig = {
     {
       type: 'text',
       id: 'intro',
-      props: {
-        title: 'Welcome to the Survey Prototype',
-        body: 'Thanks for helping us evaluate the upcoming perpetual voting study.',
-        footnote: 'Click Next to begin.',
-      },
+      paramKey: 'welcome',
     },
     {
       type: 'text',
       id: 'overview',
-      props: {
-        title: 'What To Expect',
-        body:
-          'This flow showcases the pagination framework. In production, these steps will include interactive questions and explanations.',
+      paramKey: 'overview',
+      parameters: {
         footnote: 'Use Back if you would like to review previous steps.',
       },
     },
@@ -91,11 +85,7 @@ export const fallbackSurveyConfig: SurveyConfig = {
     {
       type: 'text',
       id: 'finish',
-      props: {
-        title: 'You Made It!',
-        body: 'This is the final placeholder page. Selecting Submit will complete the flow.',
-        footnote: 'All steps are now complete.',
-      },
+      paramKey: 'closing',
     },
   ],
 };

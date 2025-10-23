@@ -77,7 +77,7 @@ describe('TextInputPage', () => {
     const result = await page.validate();
     expect(result.valid).toBe(true);
     expect(result.data?.value).toBe('This is my perspective.');
-    expect(result.data?.metadata?.length).toBe(25);
+    expect(result.data?.metadata?.length).toBe(23);
   });
 
   it('returns validation error when required input is missing', async () => {

@@ -5,6 +5,7 @@ import type {
   FlowPublicState,
   FlowState,
   PageDescriptor,
+  PageParameterMeta,
   PageFactoryContext,
   PageValidationResult,
   PaginationCompletePayload,
@@ -285,6 +286,7 @@ export class Paginator {
       descriptors: [...this.descriptors],
       dataById: this.buildDataSnapshot(),
       pageDurationsMs: this.buildDurationSnapshot(),
+      pageParameters: this.buildParameterSnapshot(),
     };
 
     this.options.onComplete?.(payload);
@@ -316,6 +318,27 @@ export class Paginator {
     this.pageDurations.forEach((value, key) => {
       snapshot[key] = Math.round(value);
     });
+    return snapshot;
+  }
+
+  private buildParameterSnapshot(): Record<string, PageParameterMeta> {
+    const snapshot: Record<string, PageParameterMeta> = {};
+
+    this.descriptors.forEach((descriptor, index) => {
+      if (!descriptor.paramKey || !descriptor.parameterMeta) {
+        return;
+      }
+
+      const key = this.keyFor(descriptor, index);
+      const parameters = this.cloneParameters(descriptor.parameterMeta.parameters);
+
+      snapshot[key] = {
+        templateKey: descriptor.parameterMeta.templateKey,
+        signature: descriptor.parameterMeta.signature,
+        parameters,
+      };
+    });
+
     return snapshot;
   }
 
@@ -494,6 +517,7 @@ export class Paginator {
       this.options.onReset?.();
 
       await this.renderPageAt(0);
+      this.clearStorage();
       this.shell.setNextDisabled(false);
       this.shell.setError();
     } catch (error) {
@@ -502,6 +526,22 @@ export class Paginator {
     } finally {
       this.shell.setResetDisabled(false);
       this.isTransitioning = false;
+    }
+  }
+
+  private cloneParameters(source?: Record<string, unknown>): Record<string, unknown> | undefined {
+    if (!source) {
+      return undefined;
+    }
+
+    try {
+      return JSON.parse(JSON.stringify(source));
+    } catch {
+      const copy: Record<string, unknown> = {};
+      Object.keys(source).forEach((key) => {
+        copy[key] = source[key];
+      });
+      return copy;
     }
   }
 }

@@ -24,7 +24,7 @@ export interface QuestionnairePropsConfig {
   questionSource?: string;
 }
 
-export type SurveyPageConfig = Omit<PageDescriptor, 'props'> & {
+export type SurveyPageConfig = Omit<PageDescriptor, 'props' | 'parameterMeta'> & {
   props?: Record<string, unknown>;
 };
 

@@ -98,6 +98,10 @@ describe('loadSurveyConfig', () => {
     expect(result.settings.direction).toBe('ltr');
     expect(result.settings.autosaveKeysToClear).toContain('survey-open-response');
     expect(result.settings.language).toBe('en-US');
+
+    const intro = result.pages.find((page) => page.id === 'intro');
+    expect(intro?.props).toMatchObject({ title: 'Welcome to the Survey Prototype' });
+    expect(intro?.parameterMeta?.templateKey).toBe('welcome');
   });
 
   it('uses config language when override is not provided', async () => {
@@ -125,5 +129,62 @@ describe('loadSurveyConfig', () => {
 
     expect(result.settings.language).toBe('he-IL');
     expect(result.settings.direction).toBe('rtl');
+  });
+
+  it('resolves template parameters when paramKey is provided', async () => {
+    const config = {
+      pages: [
+        {
+          type: 'text',
+          id: 'custom',
+          paramKey: 'closing',
+          parameters: {
+            title: 'Done!',
+            body: 'Thanks again.',
+          },
+        },
+      ],
+    };
+
+    const fetchImpl = vi.fn(async () => new Response(JSON.stringify(config), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }));
+
+    const result = await loadSurveyConfig({
+      configPath: configUrl,
+      fetchImpl,
+    });
+
+    expect(result.pages).toHaveLength(1);
+    const page = result.pages[0];
+    expect(page.props).toMatchObject({ title: 'Done!', body: 'Thanks again.' });
+    expect(page.parameterMeta).toMatchObject({ templateKey: 'closing' });
+    expect(page.parameters).toMatchObject({ title: 'Done!', body: 'Thanks again.' });
+  });
+
+  it('throws when both props and paramKey are provided', async () => {
+    const config = {
+      pages: [
+        {
+          type: 'text',
+          id: 'conflict',
+          paramKey: 'welcome',
+          props: { title: 'invalid' },
+        },
+      ],
+    };
+
+    const fetchImpl = vi.fn(async () => new Response(JSON.stringify(config), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }));
+
+    await expect(
+      loadSurveyConfig({
+        configPath: configUrl,
+        fetchImpl,
+      }),
+    ).rejects.toThrow(/cannot specify both "props" and "paramKey"/i);
   });
 });
