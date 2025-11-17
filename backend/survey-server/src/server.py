@@ -1,6 +1,7 @@
 import os
 import json
 import tempfile
+import time
 
 from flask import Flask, request
 from flask_cors import CORS
@@ -51,7 +52,9 @@ def save_response(response):
     except StorageError:
         raise
 
-    data.append(response)
+    stored_response = {'survey-response': response, 'submission-time': time.time()}
+
+    data.append(stored_response)
 
     temp_dir = os.path.dirname(storage_file) or '.'
     try:
