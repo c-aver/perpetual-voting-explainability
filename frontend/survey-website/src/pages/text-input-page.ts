@@ -5,6 +5,9 @@ type TextInputSavedData = {
   value: string;
 };
 
+/**
+ * Props accepted by the open-ended text input page.
+ */
 export interface TextInputPageProps {
   prompt: string;
   placeholder?: string;
@@ -15,6 +18,9 @@ export interface TextInputPageProps {
   autosaveKey?: string;
 }
 
+/**
+ * Data returned by the text input page when validation succeeds.
+ */
 export interface TextInputPageResult extends TextInputSavedData {
   metadata?: {
     updatedAt: string;
@@ -22,6 +28,9 @@ export interface TextInputPageResult extends TextInputSavedData {
   };
 }
 
+/**
+ * Collects a long-form text response with autosave and validation support.
+ */
 export class TextInputPage extends BasePage<TextInputPageResult, TextInputPageProps> {
   private textarea?: HTMLTextAreaElement;
   private counterEl?: HTMLSpanElement;
@@ -89,11 +98,11 @@ export class TextInputPage extends BasePage<TextInputPageResult, TextInputPagePr
     wrapper.appendChild(textarea);
     this.textarea = textarea;
 
-  const errorEl = document.createElement('p');
-  errorEl.className = 'text-input-page__error';
-  errorEl.hidden = true;
-  wrapper.appendChild(errorEl);
-  this.errorEl = errorEl;
+    const errorEl = document.createElement('p');
+    errorEl.className = 'text-input-page__error';
+    errorEl.hidden = true;
+    wrapper.appendChild(errorEl);
+    this.errorEl = errorEl;
 
     const footer = document.createElement('div');
     footer.className = 'text-input-page__footer';
@@ -161,6 +170,9 @@ export class TextInputPage extends BasePage<TextInputPageResult, TextInputPagePr
     return { valid: true, data: result };
   }
 
+  /**
+   * Refreshes the character counter to reflect the current text value.
+   */
   private updateUiState(): void {
     const value = this.textarea?.value ?? this.currentValue;
     const props = this.descriptor.props;
@@ -172,6 +184,9 @@ export class TextInputPage extends BasePage<TextInputPageResult, TextInputPagePr
     }
   }
 
+  /**
+   * Enables the next button only when required validation conditions are met.
+   */
   private syncNextButtonState(): void {
     const props = this.descriptor.props;
     if (!props?.required) {
@@ -183,6 +198,9 @@ export class TextInputPage extends BasePage<TextInputPageResult, TextInputPagePr
     this.flow.setNextEnabled(value.length > 0);
   }
 
+  /**
+   * Displays an inline validation error beneath the textarea.
+   */
   private showError(message: string): void {
     if (this.errorEl) {
       this.errorEl.textContent = message;
@@ -190,6 +208,9 @@ export class TextInputPage extends BasePage<TextInputPageResult, TextInputPagePr
     }
   }
 
+  /**
+   * Clears the inline validation error display.
+   */
   private clearError(): void {
     if (this.errorEl) {
       this.errorEl.textContent = '';
@@ -197,6 +218,9 @@ export class TextInputPage extends BasePage<TextInputPageResult, TextInputPagePr
     }
   }
 
+  /**
+   * Attempts to restore a previously autosaved response for the given key.
+   */
   private restoreFromAutosave(key: string): void {
     if (!window?.localStorage) {
       return;
@@ -222,6 +246,9 @@ export class TextInputPage extends BasePage<TextInputPageResult, TextInputPagePr
     }
   }
 
+  /**
+   * Writes or clears autosave data in localStorage depending on validation state.
+   */
   private persistAutosave(result: TextInputPageResult | null): void {
     const key = this.descriptor.props?.autosaveKey;
     if (!key || !window?.localStorage) {

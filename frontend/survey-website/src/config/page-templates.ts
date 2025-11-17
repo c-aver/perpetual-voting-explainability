@@ -11,12 +11,21 @@ interface ResolveTemplateResult<TProps> {
   meta: PageParameterMeta;
 }
 
+/**
+ * In-memory registry of template resolvers keyed by "type:paramKey".
+ */
 const registry = new Map<string, TemplateEntry<unknown>>();
 
+/**
+ * Registers a template resolver for a specific page type and template key.
+ */
 function registerTemplate<TProps>(type: string, key: string, resolve: TemplateEntry<TProps>['resolve']): void {
   registry.set(`${type}:${key}`, { type, resolve } as TemplateEntry<unknown>);
 }
 
+/**
+ * Resolves template props and metadata for the given page type and template key.
+ */
 export function resolvePageTemplate<TProps = unknown>(
   type: string,
   key: string,
@@ -41,6 +50,9 @@ export function resolvePageTemplate<TProps = unknown>(
   };
 }
 
+/**
+ * Creates a defensive copy of template parameters to prevent downstream mutation.
+ */
 function cloneParameters(parameters?: Record<string, unknown>): Record<string, unknown> | undefined {
   if (!parameters) {
     return undefined;
@@ -56,6 +68,9 @@ function cloneParameters(parameters?: Record<string, unknown>): Record<string, u
   }
 }
 
+/**
+ * Produces a stable signature string capturing the template key and parameter values.
+ */
 function buildSignature(key: string, parameters?: Record<string, unknown>): string {
   if (!parameters || Object.keys(parameters).length === 0) {
     return `template:${key}`;
@@ -68,6 +83,9 @@ function buildSignature(key: string, parameters?: Record<string, unknown>): stri
   return `template:${key}|${segments.join('&')}`;
 }
 
+/**
+ * Encodes arbitrary parameter values into a string representation for signatures.
+ */
 function encodeValue(value: unknown): string {
   if (value === undefined) {
     return 'undefined';
@@ -85,6 +103,9 @@ function encodeValue(value: unknown): string {
   }
 }
 
+/**
+ * Returns a trimmed string parameter or a fallback when the value is missing or empty.
+ */
 function pickString(parameters: Record<string, unknown> | undefined, key: string, fallback: string): string {
   const candidate = parameters?.[key];
   return typeof candidate === 'string' && candidate.trim().length > 0 ? candidate : fallback;

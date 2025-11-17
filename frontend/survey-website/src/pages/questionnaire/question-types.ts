@@ -1,5 +1,11 @@
+/**
+ * Supported identifiers for questionnaire question renderers.
+ */
 export type QuestionVariant = 'select' | 'numeric' | 'shortText' | (string & {});
 
+/**
+ * Shared properties used by all question descriptors.
+ */
 export interface QuestionDescriptorBase<
   TVariant extends QuestionVariant = QuestionVariant,
   TValue = unknown,
@@ -14,12 +20,18 @@ export interface QuestionDescriptorBase<
   defaultValue?: TValue;
 }
 
+/**
+ * Descriptor for single-select questions rendered via a `<select>` element.
+ */
 export interface SelectQuestionDescriptor
   extends QuestionDescriptorBase<'select', string | undefined> {
   options: Array<{ label: string; value: string }>;
   placeholder?: string;
 }
 
+/**
+ * Descriptor for numeric questions supporting min/max/step constraints.
+ */
 export interface NumericQuestionDescriptor extends QuestionDescriptorBase<'numeric', number> {
   min?: number;
   max?: number;
@@ -27,6 +39,9 @@ export interface NumericQuestionDescriptor extends QuestionDescriptorBase<'numer
   format?: 'integer' | 'decimal';
 }
 
+/**
+ * Descriptor for short free-form text questions.
+ */
 export interface ShortTextQuestionDescriptor
   extends QuestionDescriptorBase<'shortText', string | undefined> {
   placeholder?: string;
@@ -34,18 +49,27 @@ export interface ShortTextQuestionDescriptor
   pattern?: RegExp | string;
 }
 
+/**
+ * Union of all supported question descriptor shapes.
+ */
 export type QuestionDescriptor =
   | SelectQuestionDescriptor
   | NumericQuestionDescriptor
   | ShortTextQuestionDescriptor
   | QuestionDescriptorBase;
 
+/**
+ * Result of per-question validation routines.
+ */
 export interface QuestionValidationResult<TValue = unknown> {
   valid: boolean;
   message?: string;
   value?: TValue;
 }
 
+/**
+ * Runtime API returned by question variant factories to interact with rendered inputs.
+ */
 export interface QuestionField<TValue = unknown> {
   element: HTMLElement;
   getValue(): TValue | undefined;
@@ -54,11 +78,17 @@ export interface QuestionField<TValue = unknown> {
   destroy(): void;
 }
 
+/**
+ * Context passed to question variant factories, containing initial values and change callbacks.
+ */
 export interface QuestionVariantContext<TValue> {
   initialValue?: TValue;
   onChange(value: TValue | undefined): void;
 }
 
+/**
+ * Definition object stored in the question variant registry.
+ */
 export interface QuestionVariantDefinition<
   TDescriptor extends QuestionDescriptor = QuestionDescriptor,
   TValue = unknown,
@@ -76,8 +106,14 @@ export interface QuestionVariantDefinition<
 
 type VariantEntry = QuestionVariantDefinition<QuestionDescriptor, unknown>;
 
+/**
+ * Internal registry mapping variant names to their definition objects.
+ */
 const registry = new Map<string, VariantEntry>();
 
+/**
+ * Registers a question variant implementation for the given descriptor variant string.
+ */
 export function registerQuestionVariant<
   TDescriptor extends QuestionDescriptor,
   TValue,
@@ -85,10 +121,16 @@ export function registerQuestionVariant<
   registry.set(variant, definition as VariantEntry);
 }
 
+/**
+ * Retrieves a question variant definition, falling back to the wildcard entry when present.
+ */
 export function getQuestionVariant(variant: string): VariantEntry | undefined {
   return registry.get(variant) ?? registry.get('*');
 }
 
+/**
+ * Lists all registered variant names.
+ */
 export function listQuestionVariants(): string[] {
   return [...registry.keys()];
 }

@@ -22,6 +22,10 @@ const registry: PageRegistry = {
 		),
 };
 
+/**
+ * Bootstraps the survey application by loading configuration, wiring the paginator,
+ * and attaching submission handlers inside the #app container.
+ */
 async function bootstrap(): Promise<void> {
 	const app = document.querySelector<HTMLDivElement>('#app');
 	if (!app) {
@@ -56,12 +60,13 @@ async function bootstrap(): Promise<void> {
 		},
 		onComplete: (payload) => {
 			paginator.dispose();
-				const submission = {
-					responses: payload.dataById,
-					pageDurationsMs: payload.pageDurationsMs,
-				};
-				const submissionJson = JSON.stringify(submission, null, 2);
+			const submission = {
+				responses: payload.dataById,
+				pageDurationsMs: payload.pageDurationsMs,
+			};
+			const submissionJson = JSON.stringify(submission, null, 2);
 			const submitEndpoint = resolveSubmitEndpoint();
+			// TODO: make this more configurable.
 			app.innerHTML = `
 				<div class="survey-complete">
 					<h2>Thank you!</h2>
@@ -70,18 +75,18 @@ async function bootstrap(): Promise<void> {
 					<pre class="json-display"><code id="server-response" dir="ltr"></code></pre>
 				</div>
 			`;
-				const surveyCompleteElem = app.querySelector('code#survey-complete');
-				if (surveyCompleteElem) {
-					surveyCompleteElem.textContent = submissionJson;
+			const surveyCompleteElem = app.querySelector('code#survey-complete');
+			if (surveyCompleteElem) {
+				surveyCompleteElem.textContent = submissionJson;
 			}
 
 			console.log('Sending survey response to server...');
-				console.log(submissionJson);
-				console.log('POST', submitEndpoint);
-				const serverResponsePromise = fetch(submitEndpoint, {
+			console.log(submissionJson);
+			console.log('POST', submitEndpoint);
+			const serverResponsePromise = fetch(submitEndpoint, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-					body: submissionJson,
+				body: submissionJson,
 			});
 			const serverResponseElem = app.querySelector('code#server-response');
 			const serverResponseContainer = serverResponseElem?.parentElement ?? null;
@@ -114,6 +119,10 @@ async function bootstrap(): Promise<void> {
 	paginator.start();
 }
 
+/**
+ * Derives the survey submission endpoint using Vite environment overrides
+ * and sensible defaults for local development.
+ */
 function resolveSubmitEndpoint(): string {
 	const env = import.meta.env as Record<string, string | undefined>;
 	const defaultOrigin = getDefaultOrigin();
@@ -146,6 +155,9 @@ function resolveSubmitEndpoint(): string {
 	}
 }
 
+/**
+ * Resolves the default backend origin, preferring localhost during development.
+ */
 function getDefaultOrigin(): string {
 	if (typeof window !== 'undefined' && window.location) {
 		const { origin, hostname } = window.location;
@@ -159,6 +171,9 @@ function getDefaultOrigin(): string {
 	return 'http://localhost:8080';
 }
 
+/**
+ * Extracts the protocol (without trailing colon) from a URL origin string.
+ */
 function extractProtocol(origin: string | undefined): string | undefined {
 	if (!origin) {
 		return undefined;
@@ -172,6 +187,9 @@ function extractProtocol(origin: string | undefined): string | undefined {
 	}
 }
 
+/**
+ * Extracts the hostname from a URL origin string.
+ */
 function extractHost(origin: string | undefined): string | undefined {
 	if (!origin) {
 		return undefined;
@@ -184,6 +202,9 @@ function extractHost(origin: string | undefined): string | undefined {
 	}
 }
 
+/**
+ * Extracts the port from a URL origin string.
+ */
 function extractPort(origin: string | undefined): string | undefined {
 	if (!origin) {
 		return undefined;
@@ -197,6 +218,9 @@ function extractPort(origin: string | undefined): string | undefined {
 	}
 }
 
+/**
+ * Applies the requested text direction to the root document element.
+ */
 function applyDocumentDirection(direction: TextDirection): void {
 	if (typeof document === 'undefined') {
 		return;
@@ -204,6 +228,9 @@ function applyDocumentDirection(direction: TextDirection): void {
 	document.documentElement.setAttribute('dir', direction);
 }
 
+/**
+ * Sets or clears the document language attribute based on configuration.
+ */
 function applyDocumentLanguage(language?: string): void {
 	if (typeof document === 'undefined') {
 		return;
@@ -215,6 +242,9 @@ function applyDocumentLanguage(language?: string): void {
 	document.documentElement.setAttribute('lang', language);
 }
 
+/**
+ * Updates document-level metadata (title) based on the loaded survey configuration.
+ */
 function updateDocumentMetadata(config: LoadedSurveyConfig): void {
 	if (typeof document === 'undefined') {
 		return;
@@ -225,6 +255,9 @@ function updateDocumentMetadata(config: LoadedSurveyConfig): void {
 	}
 }
 
+/**
+ * Removes persisted autosave entries for the provided keys, ignoring storage failures.
+ */
 function clearAutosaveEntries(keys: string[]): void {
 	if (keys.length === 0 || typeof window === 'undefined' || !window.localStorage) {
 		return;

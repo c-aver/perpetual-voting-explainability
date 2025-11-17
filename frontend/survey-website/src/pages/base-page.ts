@@ -5,6 +5,9 @@ import type {
   PageValidationResult,
 } from '../pagination/types.ts';
 
+/**
+ * Shared base class for survey pages, providing lifecycle hooks and access to flow controls.
+ */
 export abstract class BasePage<
   TData = unknown,
   TProps = unknown,
@@ -21,22 +24,37 @@ export abstract class BasePage<
     this.savedData = context.savedData;
   }
 
+  /**
+   * Called when the page becomes active; default implementation stores any persisted data.
+   */
   onEnter(data?: TData): void {
     if (data !== undefined) {
       this.savedData = data;
     }
   }
 
+  /**
+   * Renders the page UI inside the provided container.
+   */
   abstract render(): void;
 
+  /**
+   * Removes page-specific markup; subclasses should also detach event listeners if needed.
+   */
   destroy(): void {
     this.container.replaceChildren();
   }
 
+  /**
+   * Validates user input and returns a result; defaults to passing through saved data.
+   */
   async validate(): Promise<PageValidationResult<TData>> {
     return { valid: true, data: this.savedData };
   }
 
+  /**
+   * Called before the page is removed from view; default implementation is a no-op.
+   */
   onLeave(): void {
     /* noop */
   }

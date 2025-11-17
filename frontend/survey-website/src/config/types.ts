@@ -1,9 +1,18 @@
 import type { PageDescriptor } from '../pagination/types.ts';
 import type { QuestionDescriptor } from '../pages/questionnaire/question-types.ts';
 
+/**
+ * Render directions supported by the survey UI.
+ */
 export type TextDirection = 'ltr' | 'rtl';
+/**
+ * Configuration-level direction setting, including automatic resolution.
+ */
 export type DirectionSetting = TextDirection | 'auto';
 
+/**
+ * Raw survey settings that can be provided by configuration files.
+ */
 export interface SurveySettings {
   showProgress?: boolean;
   storageKey?: string;
@@ -16,6 +25,9 @@ export interface SurveySettings {
   language?: string;
 }
 
+/**
+ * Configuration shape for questionnaire page props prior to normalization.
+ */
 export interface QuestionnairePropsConfig {
   title?: string;
   description?: string;
@@ -24,10 +36,16 @@ export interface QuestionnairePropsConfig {
   questionSource?: string;
 }
 
+/**
+ * Page definition as provided by configuration files before template resolution.
+ */
 export type SurveyPageConfig = Omit<PageDescriptor, 'props' | 'parameterMeta'> & {
   props?: Record<string, unknown>;
 };
 
+/**
+ * Root survey configuration document loaded from JSON.
+ */
 export interface SurveyConfig {
   version?: string;
   meta?: Record<string, unknown>;
@@ -35,6 +53,9 @@ export interface SurveyConfig {
   pages: SurveyPageConfig[];
 }
 
+/**
+ * Runtime settings consumed by the paginator after defaults are applied.
+ */
 export interface ResolvedSurveySettings {
   showProgress: boolean;
   storageKey?: string;
@@ -44,6 +65,9 @@ export interface ResolvedSurveySettings {
   language?: string;
 }
 
+/**
+ * Normalized configuration returned by `loadSurveyConfig`.
+ */
 export interface LoadedSurveyConfig {
   pages: PageDescriptor[];
   settings: ResolvedSurveySettings;

@@ -12,10 +12,16 @@ import type {
   TextDirection,
 } from './types.ts';
 
+/**
+ * Factory function signature used by the paginator to instantiate page components.
+ */
 export type PageFactory = (
   context: PageFactoryContext
 ) => BasePage<unknown, unknown>;
 
+/**
+ * Registry mapping page descriptor types to their corresponding factory implementations.
+ */
 export type PageRegistry = Record<string, PageFactory>;
 
 export interface PaginatorOptions {
@@ -31,6 +37,9 @@ export interface PaginatorOptions {
   direction?: TextDirection;
 }
 
+/**
+ * Coordinates survey navigation, validation, persistence, and completion payload emission.
+ */
 export class Paginator {
   private readonly root: HTMLDivElement;
   private readonly descriptors: PageDescriptor[];
@@ -95,6 +104,9 @@ export class Paginator {
     this.restoreFromStorage();
   }
 
+  /**
+   * Initializes the survey shell and renders the first page.
+   */
   start(): void {
     if (this.shell) {
       return;
@@ -117,6 +129,9 @@ export class Paginator {
     void this.renderPageAt(this.initialIndex, { notifyChange: false });
   }
 
+  /**
+   * Tears down the shell and current page, allowing the paginator to be discarded safely.
+   */
   dispose(): void {
     this.currentPage?.onLeave();
     this.currentPage?.destroy();
@@ -130,6 +145,9 @@ export class Paginator {
     this.visited.clear();
   }
 
+  /**
+   * Validates and advances to the next page when available.
+   */
   private async handleNext(): Promise<void> {
     if (!this.currentPage || this.isTransitioning || this.isComplete) {
       return;
@@ -167,6 +185,9 @@ export class Paginator {
     }
   }
 
+  /**
+   * Navigates to the previous page when possible.
+   */
   private async handleBack(): Promise<void> {
     if (this.currentIndex <= 0 || this.isTransitioning || !this.currentPage || !this.shell) {
       return;
@@ -189,6 +210,9 @@ export class Paginator {
     }
   }
 
+  /**
+   * Jumps directly to the requested page index, validating bounds and tearing down the current page.
+   */
   private async handleJump(index: number): Promise<void> {
     if (index < 0 || index >= this.descriptors.length) {
       throw new Error(`Cannot jump to index ${index}; out of bounds.`);
@@ -213,6 +237,9 @@ export class Paginator {
     }
   }
 
+  /**
+   * Instantiates and renders the page at the given index, wiring shell state and timing metrics.
+   */
   private async renderPageAt(index: number, options: { notifyChange?: boolean } = {}): Promise<void> {
     const shell = this.shell;
     if (!shell) {
@@ -262,6 +289,9 @@ export class Paginator {
     this.persistState();
   }
 
+  /**
+   * Persists validated page data for inclusion in the completion payload and storage snapshot.
+   */
   private storeResult(result: PageValidationResult<unknown>): void {
     if (!this.currentDescriptor) {
       return;
@@ -274,6 +304,9 @@ export class Paginator {
     }
   }
 
+  /**
+   * Finalizes the flow, emits the completion payload, and disables further navigation.
+   */
   private async finish(): Promise<void> {
     if (this.isComplete) {
       return;
@@ -300,6 +333,9 @@ export class Paginator {
     this.clearStorage();
   }
 
+  /**
+   * Produces a shallow clone of collected page data keyed by descriptor identifier.
+   */
   private buildDataSnapshot(): Record<string, unknown> {
     const snapshot: Record<string, unknown> = {};
 
@@ -313,6 +349,9 @@ export class Paginator {
     return snapshot;
   }
 
+  /**
+   * Returns a rounded snapshot of accumulated per-page durations in milliseconds.
+   */
   private buildDurationSnapshot(): Record<string, number> {
     const snapshot: Record<string, number> = {};
     this.pageDurations.forEach((value, key) => {
@@ -321,6 +360,9 @@ export class Paginator {
     return snapshot;
   }
 
+  /**
+   * Captures resolved template metadata for pages that used parameterized templates.
+   */
   private buildParameterSnapshot(): Record<string, PageParameterMeta> {
     const snapshot: Record<string, PageParameterMeta> = {};
 
@@ -342,11 +384,17 @@ export class Paginator {
     return snapshot;
   }
 
+  /**
+   * Begins timing for the active page using the provided persistence key.
+   */
   private beginTimingFor(key: string): void {
     this.currentTimingKey = key;
     this.currentTimingStart = Date.now();
   }
 
+  /**
+   * Accumulates time spent on the current page and clears the active timer.
+   */
   private recordCurrentPageDuration(): void {
     if (!this.currentTimingKey || this.currentTimingStart === undefined) {
       return;
@@ -360,10 +408,16 @@ export class Paginator {
     this.persistState();
   }
 
+  /**
+   * Computes a stable key for persistence and data snapshots, preferring explicit IDs.
+   */
   private keyFor(descriptor: PageDescriptor, index: number): string {
     return descriptor.id ?? `${descriptor.type}-${index}`;
   }
 
+  /**
+   * Returns the internal flow state used to drive progress indicators and callbacks.
+   */
   private getFlowState(): FlowState {
     return {
       currentIndex: this.currentIndex,
@@ -374,6 +428,9 @@ export class Paginator {
     };
   }
 
+  /**
+   * Returns the public-facing flow state passed to `onChange` subscribers.
+   */
   private getPublicState(): FlowPublicState {
     return {
       ...this.getFlowState(),
@@ -381,6 +438,9 @@ export class Paginator {
     };
   }
 
+  /**
+   * Attempts to hydrate paginator state from `localStorage` when enabled.
+   */
   private restoreFromStorage(): void {
     if (!this.storageKey || typeof window === 'undefined' || !window.localStorage) {
       return;
@@ -425,6 +485,9 @@ export class Paginator {
     }
   }
 
+  /**
+   * Serializes the current paginator state to `localStorage` for session resumption.
+   */
   private persistState(): void {
     if (!this.storageKey || typeof window === 'undefined' || !window.localStorage) {
       return;
@@ -454,6 +517,9 @@ export class Paginator {
     }
   }
 
+  /**
+   * Removes any persisted paginator snapshot.
+   */
   private clearStorage(): void {
     if (!this.storageKey || typeof window === 'undefined' || !window.localStorage) {
       return;
@@ -466,11 +532,17 @@ export class Paginator {
     }
   }
 
+  /**
+   * Updates the active text direction and forwards the change to the survey shell.
+   */
   setDirection(direction: TextDirection): void {
     this.direction = direction;
     this.shell?.setDirection(direction);
   }
 
+  /**
+   * Clears collected data, resets navigation state, and optionally re-renders the first page.
+   */
   async reset(): Promise<void> {
     if (this.isTransitioning) {
       return;
@@ -529,6 +601,9 @@ export class Paginator {
     }
   }
 
+  /**
+   * Clones template parameter metadata before including it in the completion payload.
+   */
   private cloneParameters(source?: Record<string, unknown>): Record<string, unknown> | undefined {
     if (!source) {
       return undefined;
@@ -546,6 +621,9 @@ export class Paginator {
   }
 }
 
+/**
+ * Shape of the serialized paginator snapshot stored in `localStorage`.
+ */
 interface PersistedPaginatorState {
   version: string;
   currentIndex: number;

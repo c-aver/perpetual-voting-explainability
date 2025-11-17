@@ -7,6 +7,9 @@ import {
   type QuestionValidationResult,
 } from './question-types.ts';
 
+/**
+ * Props describing a questionnaire page composed of multiple questions.
+ */
 export interface QuestionnairePageProps {
   title?: string;
   description?: string;
@@ -15,6 +18,9 @@ export interface QuestionnairePageProps {
   questionSource?: string;
 }
 
+/**
+ * Normalized answer payload stored for each question after validation.
+ */
 export interface QuestionnaireAnswer<TValue = unknown> {
   value: TValue;
   variant: string;
@@ -22,6 +28,9 @@ export interface QuestionnaireAnswer<TValue = unknown> {
   metadata?: Record<string, unknown>;
 }
 
+/**
+ * Data returned by the questionnaire page containing answer metadata and submission payload.
+ */
 export interface QuestionnairePageResult {
   answers: Record<string, QuestionnaireAnswer>;
   submission: Record<string, unknown>;
@@ -35,6 +44,9 @@ interface QuestionInstance {
   value?: unknown;
 }
 
+/**
+ * Renders structured question groups and collects validated answers.
+ */
 export class QuestionnairePage extends BasePage<QuestionnairePageResult, QuestionnairePageProps> {
   private readonly instances: QuestionInstance[] = [];
   private readonly answerMap = new Map<string, QuestionnaireAnswer>();
@@ -168,6 +180,9 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
     };
   }
 
+  /**
+   * Builds the DOM and variant wiring for a single question descriptor.
+   */
   private createQuestionInstance(descriptor: QuestionDescriptor): QuestionInstance {
     const container = document.createElement('div');
     container.className = 'questionnaire-question';
@@ -253,18 +268,27 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
     return instance;
   }
 
+  /**
+   * Removes validation error styling from a question container.
+   */
   private clearQuestionError(instance: QuestionInstance): void {
     instance.container.classList.remove('questionnaire-question--invalid');
     instance.errorEl.hidden = true;
     instance.errorEl.textContent = '';
   }
 
+  /**
+   * Applies validation error styling and message to a question container.
+   */
   private setQuestionError(instance: QuestionInstance, message: string): void {
     instance.container.classList.add('questionnaire-question--invalid');
     instance.errorEl.hidden = false;
     instance.errorEl.textContent = message;
   }
 
+  /**
+   * Enables the Next button only when all required questions have recorded answers.
+   */
   private updateNextButtonState(): void {
     const props = this.descriptor.props ?? { questions: [] };
 
@@ -278,6 +302,9 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
     this.flow.setNextEnabled(allRequiredSatisfied);
   }
 
+  /**
+   * Writes an answer value into the submission object using dot-notation or path arrays.
+   */
   private applySubmissionValue(
     target: Record<string, unknown>,
     key: string | string[],
@@ -307,6 +334,9 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
     cursor[path[path.length - 1]] = value;
   }
 
+  /**
+   * Provides a minimal fallback field for unsupported question variants.
+   */
   private createFallbackField(): QuestionField<unknown> {
     const container = document.createElement('div');
     container.className = 'questionnaire-field questionnaire-field--unsupported';

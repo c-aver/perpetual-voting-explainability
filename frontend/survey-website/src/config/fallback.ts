@@ -1,5 +1,8 @@
 import type { SurveyConfig } from './types.ts';
 
+/**
+ * Embedded configuration used when remote survey loading fails or is unavailable.
+ */
 export const fallbackSurveyConfig: SurveyConfig = {
   version: 'fallback-1',
   settings: {

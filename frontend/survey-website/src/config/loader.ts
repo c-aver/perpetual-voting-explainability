@@ -23,6 +23,10 @@ export interface LoadSurveyConfigOptions {
   searchParams?: URLSearchParams;
 }
 
+/**
+ * Loads survey configuration from a remote endpoint or falls back to the embedded defaults,
+ * normalizes page descriptors, and resolves runtime settings.
+ */
 export async function loadSurveyConfig(
   options: LoadSurveyConfigOptions = {},
 ): Promise<LoadedSurveyConfig> {
@@ -51,6 +55,10 @@ export async function loadSurveyConfig(
   };
 }
 
+/**
+ * Attempts to fetch the survey configuration JSON and returns the parsed payload along with
+ * the base URL used for resolving relative assets.
+ */
 async function fetchSurveyConfig(
   path: string,
   fetcher?: typeof fetch,
@@ -94,6 +102,10 @@ async function fetchSurveyConfig(
   }
 }
 
+/**
+ * Clones and normalizes page descriptors, applying template resolution and questionnaire
+ * question loading when necessary.
+ */
 async function resolvePageConfigs(
   pages: SurveyPageConfig[],
   fetcher?: typeof fetch,
@@ -149,6 +161,10 @@ async function resolvePageConfigs(
   return resolved;
 }
 
+/**
+ * Loads questionnaire questions either from inline configuration or from an external JSON
+ * document referenced by the descriptor.
+ */
 async function resolveQuestions(
   props: QuestionnairePropsConfig,
   fetcher?: typeof fetch,
@@ -194,6 +210,10 @@ async function resolveQuestions(
   }
 }
 
+/**
+ * Applies backend-provided page ordering instructions when they are available; otherwise,
+ * preserves the original descriptor sequence.
+ */
 async function applyBackendOrdering(
   pages: PageDescriptor[],
   settings?: SurveySettings,
@@ -254,6 +274,9 @@ async function applyBackendOrdering(
   }
 }
 
+/**
+ * Merges runtime settings with defaults, resolving text direction and language overrides.
+ */
 function resolveSettings(
   settings: SurveySettings | undefined,
   languageOverride?: string,
@@ -276,6 +299,10 @@ function resolveSettings(
   };
 }
 
+/**
+ * Resolves the effective text direction based on explicit configuration, default settings,
+ * and language-specific RTL overrides.
+ */
 function resolveDirection(
   directionSetting: DirectionSetting | undefined,
   fallbackDirection: TextDirection | undefined,
@@ -306,6 +333,9 @@ function resolveDirection(
   return locales.has(primary) ? 'rtl' : defaultDirection;
 }
 
+/**
+ * Converts an absolute or relative configuration path into a URL when possible.
+ */
 function resolveUrl(path: string): URL | undefined {
   if (!path) {
     return undefined;
@@ -327,6 +357,9 @@ function resolveUrl(path: string): URL | undefined {
   return undefined;
 }
 
+/**
+ * Resolves a resource path relative to the configuration base URL or the current location.
+ */
 function resolveChildUrl(path: string, baseUrl?: URL): URL | undefined {
   try {
     if (/^https?:/i.test(path)) {
@@ -348,6 +381,9 @@ function resolveChildUrl(path: string, baseUrl?: URL): URL | undefined {
   return undefined;
 }
 
+/**
+ * Derives a base URL suitable for resolving relative configuration resources in the browser.
+ */
 function getDefaultBaseUrl(): URL | undefined {
   if (typeof window === 'undefined') {
     return undefined;

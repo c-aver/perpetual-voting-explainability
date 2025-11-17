@@ -1,11 +1,17 @@
 import { BasePage } from './base-page.ts';
 
+/**
+ * Props for rendering static informational text pages.
+ */
 export interface TextPageProps {
   title?: string;
   body: string;
   footnote?: string;
 }
 
+/**
+ * Displays title/body/footnote content without collecting user input.
+ */
 export class TextPage extends BasePage<void, TextPageProps> {
   render(): void {
     const { title, body, footnote } = this.descriptor.props ?? { body: '' };

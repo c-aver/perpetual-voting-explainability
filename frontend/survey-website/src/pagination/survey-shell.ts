@@ -1,5 +1,8 @@
 import type { TextDirection } from './types.ts';
 
+/**
+ * Callbacks and display preferences for the survey shell UI wrapper.
+ */
 interface SurveyShellOptions {
   onNext: () => void;
   onBack: () => void;
@@ -8,6 +11,9 @@ interface SurveyShellOptions {
   direction?: TextDirection;
 }
 
+/**
+ * Renders the shared survey chrome (progress, navigation, errors) around each page.
+ */
 export class SurveyShell {
   private readonly root: HTMLDivElement;
   private readonly options: SurveyShellOptions;
@@ -101,10 +107,16 @@ export class SurveyShell {
     this.root.replaceChildren(this.wrapper);
   }
 
+  /**
+   * Returns the DOM node where pages should render their content.
+   */
   getContentContainer(): HTMLDivElement {
     return this.contentEl;
   }
 
+  /**
+   * Updates the progress indicator when progress tracking is enabled.
+   */
   setProgress(current: number, total: number): void {
     if (!this.options.enableProgress) {
       this.progressEl.textContent = '';
@@ -116,19 +128,31 @@ export class SurveyShell {
     this.progressEl.textContent = `Step ${current} of ${total}`;
   }
 
+  /**
+   * Enables or disables the primary navigation button.
+   */
   setNextDisabled(disabled: boolean): void {
     this.nextButton.disabled = disabled;
   }
 
+  /**
+   * Shows or hides the back button and toggles its disabled state.
+   */
   setBackEnabled(enabled: boolean): void {
     this.backButton.disabled = !enabled;
     this.backButton.hidden = !enabled;
   }
 
+  /**
+   * Updates the label shown on the primary navigation button.
+   */
   setNextLabel(label: string): void {
     this.nextButton.textContent = label;
   }
 
+  /**
+   * Displays validation or submission errors in the shell message area.
+   */
   setError(message?: string): void {
     if (!message) {
       this.messageEl.textContent = '';
@@ -140,6 +164,9 @@ export class SurveyShell {
     this.messageEl.textContent = message;
   }
 
+  /**
+   * Removes event listeners and detaches shell markup from the root node.
+   */
   teardown(): void {
     this.backButton.removeEventListener('click', this.options.onBack);
     this.nextButton.removeEventListener('click', this.options.onNext);
@@ -147,15 +174,24 @@ export class SurveyShell {
     this.root.replaceChildren();
   }
 
+  /**
+   * Applies a new text direction to the shell and reorders navigation controls accordingly.
+   */
   setDirection(direction: TextDirection): void {
     this.direction = direction;
     this.applyDirection(direction);
   }
 
+  /**
+   * Toggles the availability of the reset button while respecting whether a reset handler exists.
+   */
   setResetDisabled(disabled: boolean): void {
     this.resetButton.disabled = disabled || !this.options.onReset;
   }
 
+  /**
+   * Synchronizes DOM attributes and button order with the active text direction.
+   */
   private applyDirection(direction: TextDirection): void {
     this.wrapper.dir = direction;
 
