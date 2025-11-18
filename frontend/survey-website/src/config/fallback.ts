@@ -9,9 +9,9 @@ export const fallbackSurveyConfig: SurveyConfig = {
     showProgress: true,
     storageKey: 'perpetual-voting-survey',
     storageVersion: 'v2',
-    direction: 'ltr',
+    direction: 'auto',
     autosaveKeysToClear: ['survey-open-response'],
-    language: 'en-US',
+    language: 'he-IL',
   },
   pages: [
     {
@@ -23,9 +23,6 @@ export const fallbackSurveyConfig: SurveyConfig = {
       type: 'text',
       id: 'overview',
       paramKey: 'overview',
-      parameters: {
-        footnote: 'Use Back if you would like to review previous steps.',
-      },
     },
     {
       type: 'textInput',

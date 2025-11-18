@@ -134,17 +134,18 @@ export class TextInputPage extends BasePage<TextInputPageResult, TextInputPagePr
     const props = this.descriptor.props ?? { prompt: '' };
     const value = this.textarea?.value ?? this.currentValue;
     const trimmed = value.trim();
+    const validationCopy = this.copy.validation.textInput;
 
     if (props.required && trimmed.length === 0) {
-      this.showError('This response is required.');
-      return { valid: false, message: 'Please provide a response before continuing.' };
+      this.showError(validationCopy.inlineRequired);
+      return { valid: false, message: validationCopy.shellRequired };
     }
 
     if (props.maxLength && trimmed.length > props.maxLength) {
-      this.showError(`Response must be shorter than ${props.maxLength} characters.`);
+      this.showError(validationCopy.inlineMaxLength(props.maxLength));
       return {
         valid: false,
-        message: `Response must be shorter than ${props.maxLength} characters.`,
+        message: validationCopy.shellMaxLength(props.maxLength),
       };
     }
 

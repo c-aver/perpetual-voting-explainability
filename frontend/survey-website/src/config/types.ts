@@ -1,4 +1,4 @@
-import type { PageDescriptor } from '../pagination/types.ts';
+import type { LocalizationBundle, PageDescriptor } from '../pagination/types.ts';
 import type { QuestionDescriptor } from '../pages/questionnaire/question-types.ts';
 
 /**
@@ -33,7 +33,6 @@ export interface QuestionnairePropsConfig {
   description?: string;
   summaryKey?: string;
   questions?: QuestionDescriptor[];
-  questionSource?: string;
 }
 
 /**
@@ -71,6 +70,7 @@ export interface ResolvedSurveySettings {
 export interface LoadedSurveyConfig {
   pages: PageDescriptor[];
   settings: ResolvedSurveySettings;
-  source: 'remote' | 'fallback';
+  source: 'static';
   meta?: Record<string, unknown>;
+  copy: LocalizationBundle;
 }

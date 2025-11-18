@@ -1,31 +1,28 @@
 import { fallbackSurveyConfig } from './fallback.ts';
+import { resolveCopyCatalog } from './copy.ts';
 import type {
   DirectionSetting,
   LoadedSurveyConfig,
   QuestionnairePropsConfig,
   ResolvedSurveySettings,
-  SurveyConfig,
   SurveyPageConfig,
   SurveySettings,
   TextDirection,
 } from './types.ts';
 import type { PageDescriptor } from '../pagination/types.ts';
-import type { QuestionDescriptor } from '../pages/questionnaire/question-types.ts';
 import { resolvePageTemplate } from './page-templates.ts';
 
-const DEFAULT_CONFIG_PATH = 'config/survey.json';
 const DEFAULT_RTL_LOCALES = ['ar', 'fa', 'he', 'ur'];
 
 export interface LoadSurveyConfigOptions {
-  configPath?: string;
   fetchImpl?: typeof fetch;
   language?: string;
   searchParams?: URLSearchParams;
 }
 
 /**
- * Loads survey configuration from a remote endpoint or falls back to the embedded defaults,
- * normalizes page descriptors, and resolves runtime settings.
+ * Loads the embedded survey configuration, normalizes descriptors, applies optional
+ * backend ordering, and resolves runtime settings.
  */
 export async function loadSurveyConfig(
   options: LoadSurveyConfigOptions = {},
@@ -35,71 +32,23 @@ export async function loadSurveyConfig(
   const searchParams = options.searchParams
     ?? (typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : undefined);
 
-  const configOverride = searchParams?.get('config') ?? undefined;
   const languageParam = searchParams?.get('lang')?.trim();
   const languageOverride = languageParam && languageParam.length > 0 ? languageParam : options.language;
-  const configPath = configOverride ?? options.configPath ?? DEFAULT_CONFIG_PATH;
+  const config = fallbackSurveyConfig;
 
-  const { config, baseUrl, source } = await fetchSurveyConfig(configPath, fetcher);
-
-  const resolvedPages = await resolvePageConfigs(config.pages, fetcher, baseUrl);
-  const orderedPages = await applyBackendOrdering(resolvedPages, config.settings, fetcher, baseUrl);
+  const resolvedPages = await resolvePageConfigs(config.pages);
+  const orderedPages = await applyBackendOrdering(resolvedPages, config.settings, fetcher);
 
   const settings = resolveSettings(config.settings, languageOverride);
+  const copy = resolveCopyCatalog(settings.language);
 
   return {
     pages: orderedPages,
     settings,
-    source,
+    source: 'static',
     meta: config.meta,
+    copy,
   };
-}
-
-/**
- * Attempts to fetch the survey configuration JSON and returns the parsed payload along with
- * the base URL used for resolving relative assets.
- */
-async function fetchSurveyConfig(
-  path: string,
-  fetcher?: typeof fetch,
-): Promise<{ config: SurveyConfig; baseUrl?: URL; source: 'remote' | 'fallback' }> {
-  const fallbackResult = {
-    config: fallbackSurveyConfig,
-    baseUrl: getDefaultBaseUrl(),
-    source: 'fallback' as const,
-  };
-
-  if (!fetcher) {
-    return fallbackResult;
-  }
-
-  const resolvedUrl = resolveUrl(path);
-  if (!resolvedUrl) {
-    return fallbackResult;
-  }
-
-  try {
-    const response = await fetcher(resolvedUrl.toString(), { cache: 'no-store' });
-    if (!response.ok) {
-      console.warn(`Survey config request failed with status ${response.status}. Using fallback.`);
-      return fallbackResult;
-    }
-
-    const raw = (await response.json()) as SurveyConfig;
-    if (!raw || !Array.isArray(raw.pages)) {
-      console.warn('Survey config response missing "pages" array. Using fallback configuration.');
-      return fallbackResult;
-    }
-
-    return {
-      config: raw,
-      baseUrl: new URL('.', resolvedUrl),
-      source: 'remote',
-    };
-  } catch (error) {
-    console.warn('Failed to load survey config. Falling back to embedded configuration.', error);
-    return fallbackResult;
-  }
 }
 
 /**
@@ -108,8 +57,6 @@ async function fetchSurveyConfig(
  */
 async function resolvePageConfigs(
   pages: SurveyPageConfig[],
-  fetcher?: typeof fetch,
-  baseUrl?: URL,
 ): Promise<PageDescriptor[]> {
   const sourcePages = !pages || pages.length === 0 ? fallbackSurveyConfig.pages : pages;
   const resolved: PageDescriptor[] = [];
@@ -148,9 +95,9 @@ async function resolvePageConfigs(
     if (descriptor.type === 'questionnaire') {
       const questionnaireProps = props as QuestionnairePropsConfig | undefined;
       if (questionnaireProps) {
-        const questions = await resolveQuestions(questionnaireProps, fetcher, baseUrl);
-        questionnaireProps.questions = questions ?? [];
-        delete questionnaireProps.questionSource;
+        questionnaireProps.questions = Array.isArray(questionnaireProps.questions)
+          ? questionnaireProps.questions
+          : [];
         copy.props = questionnaireProps as unknown as Record<string, unknown>;
       }
     }
@@ -162,55 +109,6 @@ async function resolvePageConfigs(
 }
 
 /**
- * Loads questionnaire questions either from inline configuration or from an external JSON
- * document referenced by the descriptor.
- */
-async function resolveQuestions(
-  props: QuestionnairePropsConfig,
-  fetcher?: typeof fetch,
-  baseUrl?: URL,
-): Promise<QuestionDescriptor[] | undefined> {
-  if (Array.isArray(props.questions) && props.questions.length > 0) {
-    return props.questions;
-  }
-
-  const source = props.questionSource;
-  if (!source || !fetcher) {
-    return props.questions;
-  }
-
-  const resolvedUrl = resolveChildUrl(source, baseUrl);
-  if (!resolvedUrl) {
-    return props.questions;
-  }
-
-  try {
-    const response = await fetcher(resolvedUrl.toString(), { cache: 'no-store' });
-    if (!response.ok) {
-      console.warn(`Question source request failed (${response.status}). Falling back to inline questions.`);
-      return props.questions;
-    }
-
-    const payload = await response.json();
-    if (Array.isArray(payload)) {
-      return payload as QuestionDescriptor[];
-    }
-
-    const payloadObject = payload as Record<string, unknown>;
-    const questionsCandidate = payloadObject.questions;
-    if (Array.isArray(questionsCandidate)) {
-      return questionsCandidate as QuestionDescriptor[];
-    }
-
-    console.warn('Question source payload missing "questions" array.');
-    return props.questions;
-  } catch (error) {
-    console.warn('Failed to load question source. Using inline questions.', error);
-    return props.questions;
-  }
-}
-
-/**
  * Applies backend-provided page ordering instructions when they are available; otherwise,
  * preserves the original descriptor sequence.
  */
@@ -218,23 +116,28 @@ async function applyBackendOrdering(
   pages: PageDescriptor[],
   settings?: SurveySettings,
   fetcher?: typeof fetch,
-  baseUrl?: URL,
 ): Promise<PageDescriptor[]> {
   const source = settings?.pageSequenceSource;
-  if (!source || !fetcher) {
+  if (!source) {
     return pages;
   }
 
-  const resolvedUrl = resolveChildUrl(source, baseUrl);
+  if (!fetcher) {
+    console.warn('Page ordering requested without a fetch implementation; using fallback.');
+    return buildOrderingFailureFallback(pages);
+  }
+
+  const resolvedUrl = resolveChildUrl(source);
   if (!resolvedUrl) {
-    return pages;
+    console.warn('Unable to resolve page ordering URL; using fallback ordering.');
+    return buildOrderingFailureFallback(pages);
   }
 
   try {
     const response = await fetcher(resolvedUrl.toString(), { cache: 'no-store' });
     if (!response.ok) {
-      console.warn(`Page ordering request failed (${response.status}). Using default order.`);
-      return pages;
+      console.warn(`Page ordering request failed (${response.status}). Using fallback ordering.`);
+      return buildOrderingFailureFallback(pages);
     }
 
     const payload = await response.json();
@@ -246,7 +149,8 @@ async function applyBackendOrdering(
         : undefined;
 
     if (!pageIds || pageIds.length === 0) {
-      return pages;
+      console.warn('Page ordering payload missing "pageIds"; using fallback ordering.');
+      return buildOrderingFailureFallback(pages);
     }
 
     const included = new Set<PageDescriptor>();
@@ -269,8 +173,8 @@ async function applyBackendOrdering(
 
     return ordered;
   } catch (error) {
-    console.warn('Failed to load backend page ordering. Using default order.', error);
-    return pages;
+    console.warn('Failed to load backend page ordering. Using fallback ordering.', error);
+    return buildOrderingFailureFallback(pages);
   }
 }
 
@@ -334,30 +238,6 @@ function resolveDirection(
 }
 
 /**
- * Converts an absolute or relative configuration path into a URL when possible.
- */
-function resolveUrl(path: string): URL | undefined {
-  if (!path) {
-    return undefined;
-  }
-
-  try {
-    if (/^https?:/i.test(path)) {
-      return new URL(path);
-    }
-
-    if (typeof window !== 'undefined') {
-      const base = new URL('.', window.location.href);
-      return new URL(path, base);
-    }
-  } catch (error) {
-    console.warn('Unable to resolve survey config URL.', error);
-  }
-
-  return undefined;
-}
-
-/**
  * Resolves a resource path relative to the configuration base URL or the current location.
  */
 function resolveChildUrl(path: string, baseUrl?: URL): URL | undefined {
@@ -382,16 +262,18 @@ function resolveChildUrl(path: string, baseUrl?: URL): URL | undefined {
 }
 
 /**
- * Derives a base URL suitable for resolving relative configuration resources in the browser.
+ * Temporary fallback that surfaces only the welcome page when ordering fails.
+ * TODO: Replace with richer fallback logic once backend guarantees are finalized.
  */
-function getDefaultBaseUrl(): URL | undefined {
-  if (typeof window === 'undefined') {
-    return undefined;
+function buildOrderingFailureFallback(pages: PageDescriptor[]): PageDescriptor[] {
+  if (pages.length === 0) {
+    return [];
   }
 
-  try {
-    return new URL('.', window.location.href);
-  } catch {
-    return undefined;
+  const welcome = pages.find((page) => page.id === 'intro' || page.paramKey === 'welcome');
+  if (welcome) {
+    return [welcome];
   }
+
+  return [pages[0]];
 }
