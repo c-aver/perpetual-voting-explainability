@@ -26,6 +26,64 @@ export interface PageDescriptor<TProps = unknown> {
 }
 
 /**
+ * Localization bundle describing user-facing strings and formatters used across the survey runtime.
+ */
+export interface LocalizationBundle {
+  locale: string;
+  shell: {
+    labels: {
+      next: string;
+      back: string;
+      submit: string;
+      completed: string;
+      reset: string;
+    };
+    prompts: {
+      resetConfirm: string;
+    };
+    progressLabel(current: number, total: number): string;
+    defaultError: string;
+  };
+  validation: {
+    textInput: {
+      inlineRequired: string;
+      inlineMaxLength(limit: number): string;
+      shellRequired: string;
+      shellMaxLength(limit: number): string;
+    };
+    questionnaire: {
+      questionRequired: string;
+      summaryRequired: string;
+      invalidResponse: string;
+      reviewPrompt: string;
+      unsupportedQuestion: string;
+    };
+    numeric: {
+      minValue(min: number): string;
+      maxValue(max: number): string;
+      integerRequired: string;
+      stepValue(step: number): string;
+    };
+    shortText: {
+      maxLength(limit: number): string;
+      patternMismatch: string;
+    };
+  };
+  completion: {
+    heading: string;
+    body: string;
+    responseHeading: string;
+    serverHeading: string;
+    submissionPending: string;
+    submissionFailedPrefix: string;
+  };
+  app: {
+    loadFailure: string;
+    noPages: string;
+  };
+}
+
+/**
  * Internal flow state summary used to drive navigation logic and analytics.
  */
 export interface FlowState {
@@ -70,6 +128,7 @@ export interface PageFactoryContext<TProps = unknown, TData = unknown> {
   descriptor: PageDescriptor<TProps>;
   flow: FlowControls;
   savedData?: TData;
+  copy: LocalizationBundle;
 }
 
 /**

@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { TextInputPage, type TextInputPageProps, type TextInputPageResult } from './text-input-page.ts';
 import type { PageFactoryContext, PageDescriptor, FlowControls, FlowState } from '../pagination/types.ts';
+import { resolveCopyCatalog } from '../config/copy.ts';
 
 describe('TextInputPage', () => {
   const createFlowControls = () => {
@@ -53,6 +54,7 @@ describe('TextInputPage', () => {
       descriptor,
       flow: flowWrapper.controls,
       savedData: overrides.savedData,
+      copy: resolveCopyCatalog('en-US'),
     };
 
     return { context, container, flowWrapper };

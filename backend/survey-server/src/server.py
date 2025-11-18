@@ -1,7 +1,8 @@
 import os
 import json
 import tempfile
-import time
+import hashlib
+from datetime import datetime, timezone
 
 from flask import Flask, request
 from flask_cors import CORS
@@ -17,6 +18,27 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 
 storage_file = os.environ.get('SURVEY_STORAGE_FILE', '/storage-bucket/responses.json')
+
+
+def hash_ip_address(address: str | None) -> str | None:
+    """Returns a SHA-256 hash of the provided IP address string."""
+    if not address:
+        return None
+
+    normalized = address.strip()
+    if not normalized:
+        return None
+
+    digest = hashlib.sha256(normalized.encode('utf-8', errors='ignore'))
+    return digest.hexdigest()
+
+
+def extract_client_ip() -> str | None:
+    """Best-effort extraction of the originating client IP."""
+    forwarded_for = request.headers.get('X-Forwarded-For')
+    if forwarded_for:
+        return forwarded_for.split(',')[0].strip()
+    return request.remote_addr
 
 
 def ensure_storage_file() -> None:
@@ -45,14 +67,20 @@ def load_responses() -> list:
     return data
 
 
-def save_response(response):
+def save_response(response, hashed_ip: str | None = None):
     ensure_storage_file()
     try:
         data = load_responses()
     except StorageError:
         raise
-
-    stored_response = {'survey-response': response, 'submission-time': time.time()}
+    # TODO: store IP?
+    submission_time = datetime.now().astimezone().isoformat()
+    stored_response = {
+        'survey-response': response,
+        'submission-time': submission_time,
+    }
+    if hashed_ip:
+        stored_response['hashed-ip'] = hashed_ip
 
     data.append(stored_response)
 
@@ -79,8 +107,11 @@ def receive_response():
     if survey_response is None:
         return "Request body must contain JSON.", HTTPStatus.BAD_REQUEST
 
+    client_ip = extract_client_ip()
+    hashed_ip = hash_ip_address(client_ip)
+
     try:
-        save_response(survey_response)
+        save_response(survey_response, hashed_ip=hashed_ip)
     except StorageError as error:
         app.logger.error("Failed to save survey response.", exc_info=error)
         return "Failed to persist survey response.", HTTPStatus.INTERNAL_SERVER_ERROR

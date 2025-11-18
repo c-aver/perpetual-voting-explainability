@@ -4,6 +4,7 @@ import type {
   FlowControls,
   FlowPublicState,
   FlowState,
+  LocalizationBundle,
   PageDescriptor,
   PageParameterMeta,
   PageFactoryContext,
@@ -35,6 +36,7 @@ export interface PaginatorOptions {
   resumeFromStorage?: boolean;
   storageVersion?: string;
   direction?: TextDirection;
+  copy: LocalizationBundle;
 }
 
 /**
@@ -50,6 +52,7 @@ export class Paginator {
   private readonly storageVersion: string;
   private initialIndex = 0;
   private direction: TextDirection;
+  private readonly copy: LocalizationBundle;
 
   private shell?: SurveyShell;
   private currentIndex = -1;
@@ -82,6 +85,7 @@ export class Paginator {
     this.resumeFromStorage = options.resumeFromStorage ?? true;
     this.storageVersion = options.storageVersion ?? 'v1';
     this.direction = options.direction ?? 'ltr';
+    this.copy = options.copy;
 
     this.flowControls = {
       next: () => this.handleNext(),
@@ -124,6 +128,7 @@ export class Paginator {
       },
       enableProgress: this.options.showProgress ?? true,
       direction: this.direction,
+      copy: this.copy.shell,
     });
 
     void this.renderPageAt(this.initialIndex, { notifyChange: false });
@@ -161,7 +166,7 @@ export class Paginator {
       const result = await this.currentPage.validate();
       if (!result.valid) {
         this.shell?.setError(
-          result.message ?? this.options.defaultErrorMessage ?? 'Please review this step.',
+          result.message ?? this.options.defaultErrorMessage ?? this.copy.shell.defaultError,
         );
         return;
       }
@@ -264,6 +269,7 @@ export class Paginator {
       descriptor,
       flow: this.flowControls,
       savedData,
+      copy: this.copy,
     };
 
     const page = factory(context);
@@ -275,7 +281,9 @@ export class Paginator {
 
     shell.setProgress(index + 1, this.descriptors.length);
     shell.setBackEnabled(index > 0);
-    shell.setNextLabel(index === this.descriptors.length - 1 ? 'Submit' : 'Next');
+    shell.setNextLabel(index === this.descriptors.length - 1
+      ? this.copy.shell.labels.submit
+      : this.copy.shell.labels.next);
     shell.setError();
 
     page.onEnter(savedData);
@@ -325,7 +333,7 @@ export class Paginator {
     this.options.onComplete?.(payload);
 
     if (this.shell) {
-      this.shell.setNextLabel('Completed');
+      this.shell.setNextLabel(this.copy.shell.labels.completed);
       this.shell.setNextDisabled(true);
       this.shell.setBackEnabled(false);
     }
