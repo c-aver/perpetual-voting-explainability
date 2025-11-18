@@ -56,12 +56,7 @@ Metadata includes:
 
 ## Questionnaire Support
 
-Questionnaire pages can embed questions inline or reference a JSON document via `questionSource`.
-
-- When `questionSource` is present, the loader requests the file relative to the configuration URL and extracts its `questions` array.
-- Inline `questions` are merged with remote questions only when both exist; otherwise, remote content replaces inline defaults.
-
-Question descriptors follow the `QuestionDescriptor` type (`id`, `prompt`, `variant`, etc.) defined in `pages/questionnaire/question-types.ts`.
+Questionnaire pages embed their `questions` inline using the `QuestionDescriptor` type (`id`, `prompt`, `variant`, etc.) defined in `pages/questionnaire/question-types.ts`.
 
 ## Settings Resolution
 

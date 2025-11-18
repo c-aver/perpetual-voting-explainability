@@ -10,6 +10,7 @@ import { Paginator, type PageRegistry } from './pagination/paginator.ts';
 import type { PageFactoryContext } from './pagination/types.ts';
 import type { TextPageProps } from './pages/text-page.ts';
 import { loadSurveyConfig } from './config/loader.ts';
+import { resolveCopyCatalog } from './config/copy.ts';
 import type { LoadedSurveyConfig, TextDirection } from './config/types.ts';
 
 const registry: PageRegistry = {
@@ -38,7 +39,8 @@ async function bootstrap(): Promise<void> {
 		console.log(config);
 	} catch (error) {
 		console.error('Unable to load survey configuration.', error);
-		app.innerHTML = '<p>Failed to load survey definition.</p>';
+		const fallbackCopy = resolveCopyCatalog();
+		app.innerHTML = `<p>${fallbackCopy.app.loadFailure}</p>`;
 		return;
 	}
 
@@ -47,7 +49,7 @@ async function bootstrap(): Promise<void> {
 	applyDocumentDirection(config.settings.direction);
 
 	if (config.pages.length === 0) {
-		app.innerHTML = '<p>No survey pages are configured.</p>';
+		app.innerHTML = `<p>${config.copy.app.noPages}</p>`;
 		return;
 	}
 
@@ -56,6 +58,7 @@ async function bootstrap(): Promise<void> {
 		storageKey: config.settings.storageKey,
 		storageVersion: config.settings.storageVersion,
 		direction: config.settings.direction,
+		copy: config.copy,
 		onReset: () => {
 			clearAutosaveEntries(config.settings.autosaveKeysToClear);
 		},
@@ -64,15 +67,23 @@ async function bootstrap(): Promise<void> {
 			const submission = {
 				responses: payload.dataById,
 				pageDurationsMs: payload.pageDurationsMs,
+				pageParameters: payload.pageParameters,
+				locale: config.copy.locale,
+				language: config.settings.language,
+				meta: config.meta,
 			};
 			const submissionJson = JSON.stringify(submission, null, 2);
 			const submitEndpoint = resolveSubmitEndpoint();
 			// TODO: make this more configurable.
+			const completionCopy = config.copy.completion;
+
 			app.innerHTML = `
 				<div class="survey-complete">
-					<h2>Thank you!</h2>
-					<p>Your responses have been recorded.</p>
+					<h2>${completionCopy.heading}</h2>
+					<p>${completionCopy.body}</p>
+					<h3>${completionCopy.responseHeading}</h3>
 					<pre class="json-display"><code id="survey-complete" dir="ltr"></code></pre>
+					<h3>${completionCopy.serverHeading}</h3>
 					<pre class="json-display"><code id="server-response" dir="ltr"></code></pre>
 				</div>
 			`;
@@ -93,7 +104,7 @@ async function bootstrap(): Promise<void> {
 			const serverResponseContainer = serverResponseElem?.parentElement ?? null;
 			if (serverResponseContainer && serverResponseElem) {
 				serverResponseContainer.style.visibility = 'visible';
-				serverResponseElem.textContent = 'Submitting response...';
+				serverResponseElem.textContent = completionCopy.submissionPending;
 				void serverResponsePromise
 					.then(async (response) => {
 						const text = await response.text();
@@ -104,7 +115,8 @@ async function bootstrap(): Promise<void> {
 					})
 					.catch((error) => {
 						console.error('Failed to submit survey response', error);
-						serverResponseElem.textContent = `Submission failed: ${error instanceof Error ? error.message : String(error)}`;
+						const errorMessage = error instanceof Error ? error.message : String(error);
+						serverResponseElem.textContent = `${completionCopy.submissionFailedPrefix} ${errorMessage}`;
 					});
 			}
 			void serverResponsePromise.catch((error) => {

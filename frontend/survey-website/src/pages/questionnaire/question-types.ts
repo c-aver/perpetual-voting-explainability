@@ -1,3 +1,5 @@
+import type { LocalizationBundle } from '../../pagination/types.ts';
+
 /**
  * Supported identifiers for questionnaire question renderers.
  */
@@ -84,6 +86,7 @@ export interface QuestionField<TValue = unknown> {
 export interface QuestionVariantContext<TValue> {
   initialValue?: TValue;
   onChange(value: TValue | undefined): void;
+  copy: LocalizationBundle;
 }
 
 /**
@@ -100,6 +103,7 @@ export interface QuestionVariantDefinition<
   validate?(
     descriptor: TDescriptor,
     value: TValue | undefined,
+    copy: LocalizationBundle,
   ): QuestionValidationResult<TValue>;
   coerce?(value: unknown): TValue | undefined;
 }
@@ -250,21 +254,22 @@ registerQuestionVariant<NumericQuestionDescriptor, number>('numeric', {
       destroy: () => input.removeEventListener('input', handleInput),
     } satisfies QuestionField<number>;
   },
-  validate(descriptor, value) {
+  validate(descriptor, value, copy) {
+    const messages = copy.validation.numeric;
     if (value === undefined) {
       return { valid: true };
     }
 
     if (descriptor.min !== undefined && value < descriptor.min) {
-      return { valid: false, message: `Value must be at least ${descriptor.min}.` };
+      return { valid: false, message: messages.minValue(descriptor.min) };
     }
 
     if (descriptor.max !== undefined && value > descriptor.max) {
-      return { valid: false, message: `Value must be at most ${descriptor.max}.` };
+      return { valid: false, message: messages.maxValue(descriptor.max) };
     }
 
     if (descriptor.format === 'integer' && !Number.isInteger(value)) {
-      return { valid: false, message: 'Value must be an integer.' };
+      return { valid: false, message: messages.integerRequired };
     }
 
     if (descriptor.step && descriptor.step > 0) {
@@ -272,7 +277,7 @@ registerQuestionVariant<NumericQuestionDescriptor, number>('numeric', {
       const ratio = (value - base) / descriptor.step;
       const nearInteger = Math.abs(ratio - Math.round(ratio)) <= 1e-8;
       if (!nearInteger) {
-        return { valid: false, message: `Value must increment by ${descriptor.step}.` };
+        return { valid: false, message: messages.stepValue(descriptor.step) };
       }
     }
 
@@ -327,7 +332,8 @@ registerQuestionVariant<ShortTextQuestionDescriptor, string | undefined>('shortT
       destroy: () => input.removeEventListener('input', handleInput),
     } satisfies QuestionField<string | undefined>;
   },
-  validate(descriptor, value) {
+  validate(descriptor, value, copy) {
+    const messages = copy.validation.shortText;
     if (value === undefined) {
       return { valid: true };
     }
@@ -335,7 +341,7 @@ registerQuestionVariant<ShortTextQuestionDescriptor, string | undefined>('shortT
     if (descriptor.maxLength && value.length > descriptor.maxLength) {
       return {
         valid: false,
-        message: `Response must be shorter than ${descriptor.maxLength} characters.`,
+        message: messages.maxLength(descriptor.maxLength),
       };
     }
 
@@ -344,7 +350,7 @@ registerQuestionVariant<ShortTextQuestionDescriptor, string | undefined>('shortT
         ? new RegExp(descriptor.pattern)
         : descriptor.pattern;
       if (!pattern.test(value)) {
-        return { valid: false, message: 'Response does not match the required format.' };
+        return { valid: false, message: messages.patternMismatch };
       }
     }
 
@@ -359,10 +365,10 @@ registerQuestionVariant<ShortTextQuestionDescriptor, string | undefined>('shortT
 });
 
 registerQuestionVariant<QuestionDescriptor, unknown>('*', {
-  create: () => {
+  create: (_descriptor, context) => {
     const element = document.createElement('div');
     element.className = 'questionnaire-field questionnaire-field--unsupported';
-    element.textContent = 'Unsupported question type';
+    element.textContent = context.copy.validation.questionnaire.unsupportedQuestion;
     return {
       element,
       getValue: () => undefined,

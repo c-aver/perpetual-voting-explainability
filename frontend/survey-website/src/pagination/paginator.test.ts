@@ -8,6 +8,7 @@ import type {
   PaginationCompletePayload,
 } from './types.ts';
 import { BasePage } from '../pages/base-page.ts';
+import { resolveCopyCatalog } from '../config/copy.ts';
 
 interface MockPageProps {
   message: string;
@@ -47,6 +48,7 @@ describe('Paginator', () => {
   const registry: PageRegistry = {
     mock: (context) => new MockPage(context as PageFactoryContext<MockPageProps, string>),
   };
+  const copy = resolveCopyCatalog('en-US');
 
   it('renders the first page and progress on start', () => {
     document.body.innerHTML = '<div id="app"></div>';
@@ -58,7 +60,7 @@ describe('Paginator', () => {
       { type: 'mock', id: 'second', props: { message: 'Page two' } },
     ];
 
-    const paginator = new Paginator(app, descriptors, registry, { showProgress: true });
+  const paginator = new Paginator(app, descriptors, registry, { showProgress: true, copy });
     paginator.start();
 
     expect(app.querySelector('.survey-shell__content')?.textContent).toContain('Page one');
@@ -75,7 +77,7 @@ describe('Paginator', () => {
       { type: 'mock', id: 'second', props: { message: 'Second' } },
     ];
 
-    const paginator = new Paginator(app, descriptors, registry, { showProgress: true });
+    const paginator = new Paginator(app, descriptors, registry, { showProgress: true, copy });
     paginator.start();
 
     const nextButton = app.querySelector<HTMLButtonElement>('button[data-role="next"]');
@@ -107,6 +109,7 @@ describe('Paginator', () => {
     const paginator = new Paginator(app, descriptors, registry, {
       showProgress: false,
       onComplete,
+      copy,
     });
 
     paginator.start();
@@ -142,6 +145,7 @@ describe('Paginator', () => {
     const storageKey = 'paginator-storage-test';
     const paginator = new Paginator(app, descriptors, registry, {
       storageKey,
+      copy,
     });
 
     paginator.start();
@@ -173,6 +177,7 @@ describe('Paginator', () => {
     const resumed = new Paginator(appSecond, descriptors, registry, {
       storageKey,
       resumeFromStorage: true,
+      copy,
     });
 
     resumed.start();
@@ -208,6 +213,7 @@ describe('Paginator', () => {
     const paginator = new Paginator(app, descriptors, registry, {
       storageKey,
       onReset,
+      copy,
     });
 
     paginator.start();
@@ -254,6 +260,7 @@ describe('Paginator', () => {
 
     const paginator = new Paginator(app, descriptors, registry, {
       onComplete,
+      copy,
     });
 
     paginator.start();
@@ -313,6 +320,7 @@ describe('Paginator', () => {
 
     const paginator = new Paginator(app, descriptors, registry, {
       onComplete,
+      copy,
     });
 
     paginator.start();

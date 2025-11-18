@@ -1,5 +1,6 @@
 import type {
   FlowControls,
+  LocalizationBundle,
   PageDescriptor,
   PageFactoryContext,
   PageValidationResult,
@@ -15,12 +16,14 @@ export abstract class BasePage<
   protected readonly container: HTMLDivElement;
   protected readonly descriptor: PageDescriptor<TProps>;
   protected readonly flow: FlowControls;
+  protected readonly copy: LocalizationBundle;
   protected savedData?: TData;
 
   constructor(context: PageFactoryContext<TProps, TData>) {
     this.container = context.container;
     this.descriptor = context.descriptor;
     this.flow = context.flow;
+    this.copy = context.copy;
     this.savedData = context.savedData;
   }
 

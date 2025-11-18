@@ -1,4 +1,4 @@
-import type { TextDirection } from './types.ts';
+import type { LocalizationBundle, TextDirection } from './types.ts';
 
 /**
  * Callbacks and display preferences for the survey shell UI wrapper.
@@ -9,6 +9,7 @@ interface SurveyShellOptions {
   onReset?: () => void;
   enableProgress?: boolean;
   direction?: TextDirection;
+  copy: LocalizationBundle['shell'];
 }
 
 /**
@@ -27,12 +28,14 @@ export class SurveyShell {
   private readonly backButton: HTMLButtonElement;
   private readonly nextButton: HTMLButtonElement;
   private direction: TextDirection;
+  private readonly copy: LocalizationBundle['shell'];
   private readonly handleReset: () => void;
 
   constructor(root: HTMLDivElement, options: SurveyShellOptions) {
     this.root = root;
     this.options = options;
     this.direction = options.direction ?? 'ltr';
+    this.copy = options.copy;
 
     this.wrapper = document.createElement('div');
     this.wrapper.className = 'survey-shell';
@@ -60,7 +63,7 @@ export class SurveyShell {
       }
 
       const shouldReset = typeof window !== 'undefined' && typeof window.confirm === 'function'
-        ? window.confirm('Reset survey progress? All responses will be cleared.')
+        ? window.confirm(this.copy.prompts.resetConfirm)
         : true;
 
       if (shouldReset) {
@@ -71,7 +74,7 @@ export class SurveyShell {
     this.resetButton = document.createElement('button');
     this.resetButton.type = 'button';
     this.resetButton.className = 'survey-shell__reset';
-    this.resetButton.textContent = 'Reset';
+    this.resetButton.textContent = this.copy.labels.reset;
     this.resetButton.addEventListener('click', this.handleReset);
     this.resetButton.disabled = !this.options.onReset;
 
@@ -79,14 +82,14 @@ export class SurveyShell {
     this.backButton.type = 'button';
     this.backButton.className = 'survey-shell__back';
     this.backButton.dataset.role = 'back';
-    this.backButton.textContent = 'Back';
+    this.backButton.textContent = this.copy.labels.back;
     this.backButton.addEventListener('click', this.options.onBack);
 
     this.nextButton = document.createElement('button');
     this.nextButton.type = 'button';
     this.nextButton.className = 'survey-shell__next';
     this.nextButton.dataset.role = 'next';
-    this.nextButton.textContent = 'Next';
+    this.nextButton.textContent = this.copy.labels.next;
     this.nextButton.addEventListener('click', this.options.onNext);
 
     this.navActions = document.createElement('div');
@@ -125,7 +128,7 @@ export class SurveyShell {
     }
 
     this.progressEl.hidden = false;
-    this.progressEl.textContent = `Step ${current} of ${total}`;
+    this.progressEl.textContent = this.copy.progressLabel(current, total);
   }
 
   /**

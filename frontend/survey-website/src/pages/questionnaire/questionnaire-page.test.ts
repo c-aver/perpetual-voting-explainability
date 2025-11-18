@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { QuestionnairePage, type QuestionnairePageProps, type QuestionnairePageResult } from './questionnaire-page.ts';
 import type { PageDescriptor, PageFactoryContext, FlowControls, FlowState } from '../../pagination/types.ts';
+import { resolveCopyCatalog } from '../../config/copy.ts';
 
 const createFlowControls = () => {
   let nextEnabled = false;
@@ -76,6 +77,7 @@ describe('QuestionnairePage', () => {
       container,
       descriptor,
       flow: flowWrapper.controls,
+      copy: resolveCopyCatalog('en-US'),
     };
 
     return { context, container, flowWrapper };

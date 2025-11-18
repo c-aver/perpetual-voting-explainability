@@ -15,7 +15,6 @@ export interface QuestionnairePageProps {
   description?: string;
   questions: QuestionDescriptor[];
   summaryKey?: string;
-  questionSource?: string;
 }
 
 /**
@@ -111,6 +110,7 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
     const submission: Record<string, unknown> = {};
     let firstInvalid: QuestionInstance | undefined;
     let firstValidationMessage: string | undefined;
+    const validationCopy = this.copy.validation.questionnaire;
 
     for (const instance of this.instances) {
       const value = instance.field.getValue();
@@ -123,22 +123,23 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
 
       const hasValue = value !== undefined && value !== null && value !== '';
       if (descriptor.required && !hasValue) {
-        this.setQuestionError(instance, 'This question is required.');
+        this.setQuestionError(instance, validationCopy.questionRequired);
         if (!firstInvalid) {
           firstInvalid = instance;
-          firstValidationMessage = 'Please complete all required questions.';
+          firstValidationMessage = validationCopy.summaryRequired;
         }
         continue;
       }
 
       let validated: QuestionValidationResult | undefined;
       if (variantDefinition?.validate) {
-        validated = variantDefinition.validate(descriptor as QuestionDescriptor, value);
+        validated = variantDefinition.validate(descriptor as QuestionDescriptor, value, this.copy);
         if (!validated.valid) {
-          this.setQuestionError(instance, validated.message ?? 'Invalid response.');
+          const validationMessage = validated.message ?? validationCopy.invalidResponse;
+          this.setQuestionError(instance, validationMessage);
           if (!firstInvalid) {
             firstInvalid = instance;
-            firstValidationMessage = validated.message;
+            firstValidationMessage = validationMessage;
           }
           continue;
         }
@@ -163,7 +164,7 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
       firstInvalid.field.focus();
       return {
         valid: false,
-        message: firstValidationMessage ?? 'Please review the highlighted questions.',
+        message: firstValidationMessage ?? validationCopy.reviewPrompt,
       };
     }
 
@@ -247,6 +248,7 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
         this.updateNextButtonState();
         this.flow.setError();
       },
+      copy: this.copy,
     }) ?? this.createFallbackField();
 
     const fieldElement = field.element;
@@ -340,7 +342,7 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
   private createFallbackField(): QuestionField<unknown> {
     const container = document.createElement('div');
     container.className = 'questionnaire-field questionnaire-field--unsupported';
-    container.textContent = 'Unsupported question type';
+    container.textContent = this.copy.validation.questionnaire.unsupportedQuestion;
     container.tabIndex = -1;
     return {
       element: container,
