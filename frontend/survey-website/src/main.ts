@@ -35,6 +35,7 @@ async function bootstrap(): Promise<void> {
 	let config: LoadedSurveyConfig;
 	try {
 		config = await loadSurveyConfig();
+		console.log(config);
 	} catch (error) {
 		console.error('Unable to load survey configuration.', error);
 		app.innerHTML = '<p>Failed to load survey definition.</p>';

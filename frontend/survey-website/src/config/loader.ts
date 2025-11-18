@@ -70,6 +70,7 @@ async function fetchSurveyConfig(
   };
 
   if (!fetcher) {
+    console.warn(`Fetcher not provided. Using fallback.`);
     return fallbackResult;
   }
 
