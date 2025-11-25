@@ -305,6 +305,7 @@ button:disabled {
   flex-direction: column;
   gap: 1.5rem;
   text-align: start;
+  direction: inherit;
 }
 
 .instance-page__title {
@@ -332,7 +333,7 @@ button:disabled {
 .instance-page__table td {
   padding: 0.75rem 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  text-align: left;
+  text-align: start;
 }
 
 .instance-page__table thead th {
@@ -381,11 +382,13 @@ button:disabled {
 .instance-page__explanation-heading {
   margin: 0;
   font-weight: 600;
+  text-align: start;
 }
 
 .instance-page__winner-explanation {
   margin: 0;
   color: rgba(255, 255, 255, 0.75);
+  text-align: start;
 }
 
 @media (prefers-color-scheme: light) {

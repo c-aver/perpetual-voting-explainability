@@ -260,7 +260,7 @@ def receive_response():
 
 @app.route('/get-questions', methods=['GET'])
 def get_questions():
-    return { 'pageIds': ['intro', 'overview', 'perpetual-demo']}, HTTPStatus.OK
+    return { 'pageIds': PREFIX_QUESTIONS + ['perpetual-demo'] + POSTFIX_QUESTIONS}, HTTPStatus.OK
 
 @app.route("/")
 def hello_world():
