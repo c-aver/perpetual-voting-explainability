@@ -5,6 +5,7 @@ This Flask application accepts survey responses from the frontend and persists t
 ## Features
 
 - Receives `POST /submit-response` payloads and appends them to a JSON array.
+- Serves `GET /get-questions` so the frontend can pull the canonical fallback ordering.
 - Stores metadata such as submission timestamp alongside the raw response.
 - Uses `SURVEY_STORAGE_FILE` environment variable to determine where responses are persisted (defaults to `/storage-bucket/responses.json`).
 - CORS-enabled to allow frontend integration during development.
@@ -83,6 +84,7 @@ If you prefer to run the app directly:
 ## API Endpoints
 
 - `POST /submit-response` — Accepts JSON payloads from the frontend; returns status messages on success or failure.
+- `GET /get-questions` — Returns `{ "pageIds": [...] }` matching the fallback survey ordering used by the frontend.
 - `GET /` — Simple hello world endpoint for smoke testing.
 
 ## Logs & Stored Data

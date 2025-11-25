@@ -18,6 +18,13 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 
 storage_file = os.environ.get('SURVEY_STORAGE_FILE', '/storage-bucket/responses.json')
+QUESTION_PAGE_ORDER = [
+    'intro',
+    'overview',
+    'open-response',
+    'participant-profile',
+    'finish',
+]
 
 
 def hash_ip_address(address: str | None) -> str | None:
@@ -117,6 +124,11 @@ def receive_response():
         return "Failed to persist survey response.", HTTPStatus.INTERNAL_SERVER_ERROR
 
     return "Submit successful!", HTTPStatus.OK
+
+@app.route('/get-questions', methods=['GET'])
+def get_questions():
+    """Returns the backend-defined page ordering for questionnaire flow."""
+    return {'pageIds': QUESTION_PAGE_ORDER}, HTTPStatus.OK
 
 
 @app.route("/")

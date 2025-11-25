@@ -1,4 +1,7 @@
 import type { SurveyConfig } from './types.ts';
+import { resolveQuestionOrderEndpoint } from './api-endpoints.ts';
+
+const questionOrderingSource = resolveQuestionOrderEndpoint();
 
 /**
  * Embedded configuration used when remote survey loading fails or is unavailable.
@@ -11,7 +14,8 @@ export const fallbackSurveyConfig: SurveyConfig = {
     storageVersion: 'v2',
     direction: 'auto',
     autosaveKeysToClear: ['survey-open-response'],
-    language: 'he-IL',
+    language: 'en-US',
+    pageSequenceSource: questionOrderingSource,
   },
   pages: [
     {
