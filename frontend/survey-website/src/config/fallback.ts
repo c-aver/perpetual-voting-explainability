@@ -122,7 +122,7 @@ function createInstancePages(): SurveyPageConfig[] {
           type: 'instance',
           id: `instance-${instanceId}-${ruleId}-${explanationId}`,
           props: {
-            title: 'דוגמה למעבר על מופע.',
+            title: 'דוגמה למעבר על מופע.', // TODO: change to something representative?
             introText: introByType[explanationId] + "\n" + (ruleExplanationByType[explanationId]?.[ruleId] ?? ""),
             showResultsExplanation: explanationsByType[explanationId] !== undefined,
             voters: instanceVoters[instanceId],

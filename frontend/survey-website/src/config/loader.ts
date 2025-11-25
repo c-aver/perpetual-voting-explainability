@@ -13,6 +13,12 @@ import type { PageDescriptor } from '../pagination/types.ts';
 import { resolvePageTemplate } from './page-templates.ts';
 
 const DEFAULT_RTL_LOCALES = ['ar', 'fa', 'he', 'ur'];
+const ORDERING_PREFIX_PAGE_IDS = ['intro', 'overview', 'demographic', 'perpetual-demo'];
+const ORDERING_POSTFIX_PAGE_IDS = ['feedback', 'thank-you'];
+const RANDOMIZED_INSTANCE_COUNT = 4;
+const INSTANCE_ID_POOL = ['simple', 'complicated', 'few-rounds', 'few-voters'];
+const RULE_ID_POOL = ['approval', 'unit-cost', 'equal-shares', 'phragmen'];
+const EXPLANATION_ID_POOL = ['none', 'mechanical', 'instance-based', 'llm-generated'];
 
 export interface LoadSurveyConfigOptions {
   fetchImpl?: typeof fetch;
@@ -253,19 +259,64 @@ function resolveChildUrl(path: string, baseUrl?: URL): URL | undefined {
   return undefined;
 }
 
-/**
- * Temporary fallback that surfaces only the welcome page when ordering fails.
- * TODO: Replace with richer fallback logic once backend guarantees are finalized.
- */
 function buildOrderingFailureFallback(pages: PageDescriptor[]): PageDescriptor[] {
   if (pages.length === 0) {
     return [];
   }
 
-  const welcome = pages.find((page) => page.id === 'intro' || page.paramKey === 'welcome');
-  if (welcome) {
-    return [welcome];
+  const prefix = collectPagesById(pages, ORDERING_PREFIX_PAGE_IDS);
+  const randomizedIds = generateInstancePageIds(RANDOMIZED_INSTANCE_COUNT);
+  const randomized = collectPagesById(pages, randomizedIds);
+  const postfix = collectPagesById(pages, ORDERING_POSTFIX_PAGE_IDS);
+
+  const combined = [...prefix, ...randomized, ...postfix];
+
+  if (combined.length > 0) {
+    return combined;
   }
 
   return [pages[0]];
+}
+
+function collectPagesById(pages: PageDescriptor[], ids: string[]): PageDescriptor[] {
+  return ids
+    .map((id) => pages.find((page) => page.id === id))
+    .filter((page): page is PageDescriptor => Boolean(page));
+}
+
+function generateInstancePageIds(count: number): string[] {
+  if (count <= 0) {
+    return [];
+  }
+
+  const instances = shuffledSequence(INSTANCE_ID_POOL, count);
+  const rules = shuffledSequence(RULE_ID_POOL, count);
+  const explanations = shuffledSequence(EXPLANATION_ID_POOL, count);
+
+  return Array.from({ length: count }, (_, index) => (
+    `instance-${instances[index]}-${rules[index]}-${explanations[index]}`
+  ));
+}
+
+function shuffledSequence(options: string[], count: number): string[] {
+  if (options.length === 0 || count <= 0) {
+    return [];
+  }
+
+  const pool = [...options];
+  const result: string[] = [];
+
+  while (result.length < count) {
+    shuffleInPlace(pool);
+    result.push(...pool);
+  }
+
+  return result.slice(0, count);
+}
+
+function shuffleInPlace<T>(values: T[]): void {
+  for (let index = values.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [values[index], values[swapIndex]] = [values[swapIndex], values[index]];
+  }
 }
