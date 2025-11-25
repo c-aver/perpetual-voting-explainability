@@ -16,9 +16,9 @@ const DEFAULT_RTL_LOCALES = ['ar', 'fa', 'he', 'ur'];
 const ORDERING_PREFIX_PAGE_IDS = ['intro', 'demographic', 'overview', 'perpetual-demo'];
 const ORDERING_POSTFIX_PAGE_IDS = ['feedback', 'thank-you'];
 const RANDOMIZED_INSTANCE_COUNT = 4;
-const INSTANCE_ID_POOL = ['simple', 'complicated', 'few-rounds', 'few-voters'];
-const RULE_ID_POOL = ['approval', 'unit-cost', 'equal-shares', 'phragmen'];
-const EXPLANATION_ID_POOL = ['none', 'mechanical', 'instance-based', 'llm-generated'];
+const INSTANCE_ID_POOL = ['simple', 'complicated', 'few_rounds', 'few_voters'];
+const RULE_ID_POOL = ['approval', 'unit_cost', 'equal_shares', 'phragmen'];
+const EXPLANATION_ID_POOL = ['none', 'mechanical', 'instance_based', 'llm_generated'];
 
 export interface LoadSurveyConfigOptions {
   fetchImpl?: typeof fetch;
@@ -260,6 +260,7 @@ function resolveChildUrl(path: string, baseUrl?: URL): URL | undefined {
 }
 
 function buildOrderingFailureFallback(pages: PageDescriptor[]): PageDescriptor[] {
+  console.warn("Using order failure fallback")
   if (pages.length === 0) {
     return [];
   }
