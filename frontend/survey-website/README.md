@@ -48,13 +48,13 @@ Supporting utilities are deliberately kept close to their usage sites to make tr
 
 Configuration files describe survey pages, settings, and remote assets.
 
-- `loadSurveyConfig` accepts optional overrides for config URL and language. It fetches JSON, merges with fallback defaults, resolves page order, and normalizes descriptors.
+- `loadSurveyConfig` accepts optional overrides for config URL and language. It fetches JSON, merges with fallback defaults, resolves backend-provided page order, and normalizes descriptors.
 - Supported settings include progress visibility, text direction, local storage keys, autosave management, and language.
 - Configuration supports parameterized page descriptors via the `paramKey` and `parameters` fields.
-- Questionnaire pages can load question definitions inline or from a remote JSON source.
-- Page ordering can be dynamically overridden via backend-provided `pageIds` lists.
+- Questionnaire pages embed questions inline; only the ordering comes from the backend.
+- Page ordering is dynamically overridden via backend-provided `pageIds` lists served from `/get-questions`.
 
-See [`docs/configuration.md`](docs/configuration.md) for a full schema reference and extension guidelines.
+See [`docs/configuration.md`](docs/configuration.md) for a full schema reference, including environment overrides handled by `src/config/api-endpoints.ts`.
 
 ## Pagination Framework
 
@@ -113,13 +113,14 @@ Persistence prioritizes user experience (resume capability) while avoiding data 
 
 ## API Integration
 
-The frontend only communicates with the backend during submission:
+Backend contact points are limited and centrally defined in `src/config/api-endpoints.ts`:
 
-1. When `onComplete` fires, `main.ts` builds a submission payload with responses, durations, and resolved parameters.
-2. `resolveSubmitEndpoint` determines the backend URL based on Vite environment variables or defaults (`http://localhost:8080/submit-response`).
-3. `fetch` is used to POST the submission. Failures display an error message and log details for troubleshooting.
+1. During configuration load, `pageSequenceSource` points to `/get-questions`, allowing the backend to dictate page ordering for experiments.
+2. When `onComplete` fires, `main.ts` builds a submission payload with responses, durations, and resolved parameters.
+3. `resolveSubmitEndpoint` computes the submission URL using Vite environment variables (falling back to `http://localhost:8080/submit-response`).
+4. `fetch` is used to POST the submission. Failures display an error message and log details for troubleshooting.
 
-The architecture is intentionally stateless beyond the submission call, simplifying deployment to static hosting platforms.
+Thanks to explicit helpers, both endpoints can be reconfigured per environment without touching the app logic, keeping the rest of the UI stateless.
 
 ## Styling Conventions
 
@@ -147,6 +148,7 @@ Execute tests with `npm test` (watch mode) or `npm test -- --run` for a single-p
 | `VITE_SURVEY_API_HOST` | Hostname override | Derived from window location |
 | `VITE_SURVEY_API_PORT` | Port override | Derived from window location |
 | `VITE_SURVEY_API_PATH` | Submission path | `/submit-response` |
+| `VITE_SURVEY_API_QUESTION_PATH` | Ordering endpoint path | `/get-questions` |
 
 Only set the host/port variables when deploying to environments where the frontend and backend live on different origins.
 

@@ -300,6 +300,94 @@ button:disabled {
   border-color: #646cff;
 }
 
+.instance-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  text-align: start;
+}
+
+.instance-page__title {
+  margin: 0;
+}
+
+.instance-page__intro {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.instance-page__table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.instance-page__table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.instance-page__table th,
+.instance-page__table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  text-align: left;
+}
+
+.instance-page__table thead th {
+  border-bottom: 2px solid rgba(255, 255, 255, 0.25);
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.instance-page__table tbody th {
+  font-weight: 600;
+  width: 140px;
+}
+
+.instance-page__table tbody tr:last-child th,
+.instance-page__table tbody tr:last-child td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.instance-page__table tfoot th,
+.instance-page__table tfoot td {
+  border-top: 2px solid rgba(255, 255, 255, 0.25);
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.instance-page__winner-row th {
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+}
+
+.instance-page__explanations {
+  display: flex;
+  flex-direction: column;
+}
+
+.instance-page__explanation-list {
+  margin: 0;
+  padding-inline-start: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.instance-page__explanation-heading {
+  margin: 0;
+  font-weight: 600;
+}
+
+.instance-page__winner-explanation {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -358,5 +446,26 @@ button:disabled {
   }
   .survey-complete__data {
     background: rgba(0, 0, 0, 0.05);
+  }
+  .instance-page__intro {
+    color: #4f5967;
+  }
+  .instance-page__table {
+    background: #ffffff;
+  }
+  .instance-page__table th,
+  .instance-page__table td {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  .instance-page__table thead th {
+    border-bottom: 2px solid rgba(0, 0, 0, 0.12);
+  }
+  .instance-page__table tfoot th,
+  .instance-page__table tfoot td {
+    border-top: 2px solid rgba(0, 0, 0, 0.12);
+    background: rgba(0, 0, 0, 0.03);
+  }
+  .instance-page__winner-explanation {
+    color: #4f5967;
   }
 }

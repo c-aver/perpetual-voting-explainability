@@ -6,12 +6,13 @@ import {
 	type QuestionnairePageProps,
 	type QuestionnairePageResult,
 } from './pages/questionnaire/questionnaire-page.ts';
+import { InstancePage, type InstancePageResult } from './pages/instance/instance-page.ts';
 import { Paginator, type PageRegistry } from './pagination/paginator.ts';
 import type { PageFactoryContext } from './pagination/types.ts';
 import type { TextPageProps } from './pages/text-page.ts';
 import { loadSurveyConfig } from './config/loader.ts';
 import { resolveCopyCatalog } from './config/copy.ts';
-import type { LoadedSurveyConfig, TextDirection } from './config/types.ts';
+import type { InstancePagePropsConfig, LoadedSurveyConfig, TextDirection } from './config/types.ts';
 import { resolveSubmitEndpoint } from './config/api-endpoints.ts';
 
 const registry: PageRegistry = {
@@ -22,6 +23,8 @@ const registry: PageRegistry = {
 		new QuestionnairePage(
 			context as PageFactoryContext<QuestionnairePageProps, QuestionnairePageResult>,
 		),
+	instance: (context) =>
+		new InstancePage(context as PageFactoryContext<InstancePagePropsConfig, InstancePageResult>),
 };
 
 /**

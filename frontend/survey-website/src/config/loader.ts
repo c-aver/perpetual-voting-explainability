@@ -153,24 +153,16 @@ async function applyBackendOrdering(
       return buildOrderingFailureFallback(pages);
     }
 
-    const included = new Set<PageDescriptor>();
     const ordered: PageDescriptor[] = [];
 
     for (const id of pageIds) {
       const page = pages.find((descriptor) => descriptor.id === id);
-      if (page && !included.has(page)) {
+      if (page) {
         ordered.push(page);
-        included.add(page);
       }
     }
 
-    for (const page of pages) {
-      if (!included.has(page)) {
-        ordered.push(page);
-        included.add(page);
-      }
-    }
-
+    console.log(ordered);
     return ordered;
   } catch (error) {
     console.warn('Failed to load backend page ordering. Using fallback ordering.', error);

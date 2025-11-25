@@ -35,6 +35,38 @@ export interface QuestionnairePropsConfig {
   questions?: QuestionDescriptor[];
 }
 
+export interface InstanceVoterConfig {
+  id: number;
+  label?: string;
+}
+
+export interface InstanceVoteConfig {
+  voterId: number;
+  selections: string[];
+}
+
+export interface InstanceDayConfig {
+  day: number;
+  winner: string;
+  explanation?: string;
+  votes: InstanceVoteConfig[];
+}
+
+export interface InstanceRatingConfig {
+  scaleSize?: number;
+  prompt?: string;
+  minLabel?: string;
+  maxLabel?: string;
+}
+
+export interface InstancePagePropsConfig {
+  title?: string;
+  introText?: string;
+  voters: InstanceVoterConfig[];
+  days: InstanceDayConfig[];
+  rating?: InstanceRatingConfig;
+}
+
 /**
  * Page definition as provided by configuration files before template resolution.
  */

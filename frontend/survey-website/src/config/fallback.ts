@@ -87,6 +87,58 @@ export const fallbackSurveyConfig: SurveyConfig = {
       },
     },
     {
+      type: 'instance',
+      id: 'perpetual-demo',
+      props: {
+        title: 'Preview the Perpetual Voting Walkthrough',
+        introText:
+          'Below is a simplified three-day instance showing how ballots roll forward and how victors emerge. Advance through each day to unlock the fairness slider.',
+        voters: [
+          { id: 1, label: 'Voter A' },
+          { id: 2, label: 'Voter B' },
+          { id: 3, label: 'Voter C' },
+        ],
+        days: [
+          {
+            day: 1,
+            winner: 'Project Alpha',
+            explanation: 'Placeholder explanation for why Project Alpha leads after the first day.',
+            votes: [
+              { voterId: 1, selections: ['Project Alpha', 'Project Beta'] },
+              { voterId: 2, selections: ['Project Beta', 'Project Alpha'] },
+              { voterId: 3, selections: ['Project Alpha'] },
+            ],
+          },
+          {
+            day: 2,
+            winner: 'Project Beta',
+            explanation: 'Placeholder explanation describing how reallocations promote Project Beta on day two.',
+            votes: [
+              { voterId: 1, selections: ['Project Beta', 'Project Gamma'] },
+              { voterId: 2, selections: ['Project Beta'] },
+              { voterId: 3, selections: ['Project Gamma', 'Project Alpha'] },
+            ],
+          },
+          {
+            day: 3,
+            winner: 'Project Gamma',
+            explanation: 'Placeholder explanation summarizing the final reveal and why Project Gamma ultimately wins.',
+            votes: [
+              { voterId: 1, selections: ['Project Gamma', 'Project Beta'] },
+              { voterId: 2, selections: ['Project Gamma'] },
+              { voterId: 3, selections: ['Project Gamma', 'Project Alpha'] },
+            ],
+          },
+        ],
+        rating: {
+          scaleSize: 7,
+          prompt: 'After viewing all three days, how fair does this outcome feel to you?',
+          minLabel: 'Not fair at all',
+          maxLabel: 'Extremely fair',
+        },
+      },
+    },
+    {
       type: 'text',
       id: 'finish',
       paramKey: 'closing',

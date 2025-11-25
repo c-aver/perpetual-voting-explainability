@@ -125,6 +125,3 @@ export function resolveQuestionOrderEndpoint(): string {
   return resolveEndpoint(path, DEFAULT_QUESTION_ORDER_PATH);
 }
 
-export function getSurveyApiDefaultOrigin(): string {
-  return getDefaultOrigin();
-}
