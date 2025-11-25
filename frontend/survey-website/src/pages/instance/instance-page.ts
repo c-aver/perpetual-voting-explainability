@@ -51,7 +51,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     if (props.introText) {
       const intro = document.createElement('p');
       intro.className = 'instance-page__intro';
-      intro.textContent = props.introText;
+      this.appendTextWithLineBreaks(intro, props.introText);
       wrapper.appendChild(intro);
     }
 
@@ -390,5 +390,15 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
 
   private persistState(): void {
     this.savedData = this.buildResult();
+  }
+
+  private appendTextWithLineBreaks(element: HTMLElement, text: string): void {
+    const segments = (text ?? '').split('\n');
+    segments.forEach((segment, index) => {
+      if (index > 0) {
+        element.appendChild(document.createElement('br'));
+      }
+      element.appendChild(document.createTextNode(segment));
+    });
   }
 }

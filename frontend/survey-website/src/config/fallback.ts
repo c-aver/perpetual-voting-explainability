@@ -91,7 +91,14 @@ const llmGeneratedExplanations: Record<string, string[]> = {
   ],
 };
 
-const introByType: Record<string, typeof mechanicalExplanations | undefined> = {
+const introByType: Record<string, string> = {
+  'none': 'עבור מופע זה אתם נדרשים לדרג את ההוגנות ללא הסבר.',
+  'mechanical': 'עבור מופע זה תקבלו הסבר לגבי איך פועל החוק המוצג:',
+  'instance_based': 'עבור מופע זה תקבלו הסבר לגבי איך פועל החוק המוצג וכן הסבר מפורט לגבי למה החוק בחר את המנצח:' ,
+  'llm_generated': "עבור מופע תקבלו הסברים שיוצרו על ידי LLM.",
+}
+
+const ruleExplanationByType: Record<string, Record<string, string> | undefined> = {
   'none': undefined,
   'mechanical': mechanicalExplanations,
   'instance_based': mechanicalExplanations,
@@ -116,7 +123,7 @@ function createInstancePages(): SurveyPageConfig[] {
           id: `instance-${instanceId}-${ruleId}-${explanationId}`,
           props: {
             title: 'דוגמה למעבר על מופע.',
-            introText: introByType[explanationId]?.[ruleId] ?? '',
+            introText: introByType[explanationId] + "\n" + (ruleExplanationByType[explanationId]?.[ruleId] ?? ""),
             showResultsExplanation: explanationsByType[explanationId] !== undefined,
             voters: instanceVoters[instanceId],
             explanations: explanationsByType[explanationId]?.[instanceId],
@@ -132,7 +139,6 @@ function createInstancePages(): SurveyPageConfig[] {
       }
     }
   }
-  console.log(result);
   return result;
 }
 
