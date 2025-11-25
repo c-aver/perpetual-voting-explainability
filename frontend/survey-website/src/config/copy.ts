@@ -129,7 +129,7 @@ const heIL: LocalizationBundle = {
     noPages: 'אין עמודי סקר זמינים.',
   },
   instancePage: {
-    revealNextDay: (day) => `הציגו את יום ${day}`,
+    revealNextDay: (day) => `הצג את יום ${day}`,
     ratingPrompt: 'עד כמה התוצאות הללו הוגנות?',
     sliderMinLabel: 'לא הוגן',
     sliderMaxLabel: 'הוגן מאוד',
