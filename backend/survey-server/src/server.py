@@ -22,8 +22,8 @@ responses_file = os.environ.get('RESPONSE_STORAGE_FILE', '/storage-bucket/respon
 
 PREFIX_QUESTIONS = [
     'intro',
-    'overview',
     'demographic',
+    'overview',
     'perpetual-demo'
 ]
 POSTFIX_QUESTIONS = [

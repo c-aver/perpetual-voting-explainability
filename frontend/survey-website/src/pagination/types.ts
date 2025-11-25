@@ -92,7 +92,6 @@ export interface LocalizationBundle {
     sliderMaxLabel: string;
     voterHeaderLabel: string;
     dayHeader(day: number): string;
-    winnerLabel(day: number, winner: string): string;
     winnerRowLabel: string;
   };
 }

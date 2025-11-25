@@ -27,6 +27,8 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
   private revealButton?: HTMLButtonElement;
   private ratingContainer?: HTMLDivElement;
   private ratingValueLabel?: HTMLSpanElement;
+  private highlightedDay?: number;
+  private pendingScrollDay?: number;
   private readonly revealHandler = () => this.handleRevealNextDay();
 
   onEnter(data?: InstancePageResult): void {
@@ -34,6 +36,8 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     const totalDays = this.getTotalDays();
     this.revealedDays = Math.min(Math.max(data?.revealedDays ?? 0, 0), totalDays);
     this.rating = data?.rating;
+    this.highlightedDay = undefined;
+    this.pendingScrollDay = undefined;
   }
 
   render(): void {
@@ -147,11 +151,16 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     const headerRow = document.createElement('tr');
     const voterHeader = document.createElement('th');
     voterHeader.textContent = copy.voterHeaderLabel;
+    voterHeader.classList.add('instance-page__cell--frozen');
     headerRow.appendChild(voterHeader);
 
     for (let day = 1; day <= this.revealedDays; day += 1) {
       const dayHeader = document.createElement('th');
       dayHeader.textContent = copy.dayHeader(day);
+      dayHeader.dataset.day = day.toString();
+      if (day === this.highlightedDay) {
+        dayHeader.classList.add('instance-page__cell--highlight');
+      }
       headerRow.appendChild(dayHeader);
     }
 
@@ -165,11 +174,16 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
       const labelCell = document.createElement('th');
       labelCell.scope = 'row';
       labelCell.textContent = this.getVoterLabel(voter);
+      labelCell.classList.add('instance-page__cell--frozen');
       row.appendChild(labelCell);
 
       for (let day = 1; day <= this.revealedDays; day += 1) {
         const dayCell = document.createElement('td');
         dayCell.textContent = this.getBallotDisplay(voter.id, day);
+        dayCell.dataset.day = day.toString();
+        if (day === this.highlightedDay) {
+          dayCell.classList.add('instance-page__cell--highlight');
+        }
         row.appendChild(dayCell);
       }
 
@@ -185,11 +199,16 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
       const labelCell = document.createElement('th');
       labelCell.scope = 'row';
       labelCell.textContent = copy.winnerRowLabel;
+      labelCell.classList.add('instance-page__cell--frozen');
       winnerRow.appendChild(labelCell);
 
       for (let day = 1; day <= this.revealedDays; day += 1) {
         const valueCell = document.createElement('td');
         valueCell.textContent = this.getWinnerDisplay(day);
+        valueCell.dataset.day = day.toString();
+        if (day === this.highlightedDay) {
+          valueCell.classList.add('instance-page__cell--highlight');
+        }
         winnerRow.appendChild(valueCell);
       }
 
@@ -197,7 +216,15 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
       table.appendChild(tfoot);
     }
 
-    this.tableContainer.replaceChildren(table);
+    const scrollContainer = document.createElement('div');
+    scrollContainer.className = 'instance-page__table-scroll';
+    scrollContainer.appendChild(table);
+    this.tableContainer.replaceChildren(scrollContainer);
+
+    if (this.pendingScrollDay) {
+      this.scrollToDay(scrollContainer, this.pendingScrollDay);
+      this.pendingScrollDay = undefined;
+    }
   }
 
   private renderWinners(): void {
@@ -318,6 +345,8 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     }
 
     this.revealedDays += 1;
+    this.highlightedDay = this.revealedDays;
+    this.pendingScrollDay = this.revealedDays;
     this.persistState();
     this.refreshUi();
   }
@@ -400,5 +429,16 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
       }
       element.appendChild(document.createTextNode(segment));
     });
+  }
+
+  private scrollToDay(container: HTMLDivElement, day: number): void {
+    const targetCell = container.querySelector<HTMLElement>(`[data-day="${day}"]`);
+    if (!targetCell) {
+      return;
+    }
+
+    const direction = getComputedStyle(container).direction;
+    const inline = direction === 'rtl' ? 'start' : 'end';
+    targetCell.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline });
   }
 }

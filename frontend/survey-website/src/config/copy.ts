@@ -66,7 +66,6 @@ const enUS: LocalizationBundle = {
     sliderMaxLabel: 'Very fair',
     voterHeaderLabel: 'Voter',
     dayHeader: (day) => `Day ${day}`,
-    winnerLabel: (day, winner) => `Day ${day}: Winner ${winner}`,
     winnerRowLabel: 'Winner',
   },
 };
@@ -135,8 +134,7 @@ const heIL: LocalizationBundle = {
     sliderMaxLabel: 'הוגן מאוד',
     voterHeaderLabel: 'מצביע',
     dayHeader: (day) => `יום ${day}`,
-    winnerLabel: (day, winner) => `יום ${day}: הזוכה ${winner}`,
-    winnerRowLabel: 'הזוכה',
+    winnerRowLabel: 'מנצח',
   },
 };
 
