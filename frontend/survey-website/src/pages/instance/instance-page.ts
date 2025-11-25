@@ -206,9 +206,11 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     }
 
     const props = this.getProps();
+    const explanations = props.explanations ?? [];
     const explainedDays = props.days
       .slice(0, this.revealedDays)
-      .filter((day) => Boolean(day.explanation));
+      .map((day, index) => ({ dayNumber: day.day, text: explanations[index] }))
+      .filter((entry) => Boolean(entry.text));
 
     if (explainedDays.length === 0) {
       this.winnersContainer.hidden = true;
@@ -220,22 +222,22 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     const list = document.createElement('ol');
     list.className = 'instance-page__explanation-list';
 
-    explainedDays.forEach((day) => {
+    explainedDays.forEach((entry) => {
       const item = document.createElement('li');
       const heading = document.createElement('p');
       heading.className = 'instance-page__explanation-heading';
-      heading.textContent = this.copy.instancePage.dayHeader(day.day);
+      heading.textContent = this.copy.instancePage.dayHeader(entry.dayNumber);
       item.appendChild(heading);
 
       const explanation = document.createElement('p');
       explanation.className = 'instance-page__winner-explanation';
-      explanation.textContent = day.explanation ?? '';
+      explanation.textContent = entry.text ?? '';
       item.appendChild(explanation);
 
       list.appendChild(item);
     });
 
-    this.winnersContainer.replaceChildren(list);
+    if (props.showResultsExplanation) this.winnersContainer.replaceChildren(list);
   }
 
   private updateRevealButton(): void {
@@ -289,7 +291,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     slider.min = '1';
     slider.max = ratingConfig.scaleSize.toString();
     slider.step = '1';
-    const initialValue = this.rating ?? Math.ceil(ratingConfig.scaleSize / 2);
+    const initialValue = this.rating ?? 1;
     slider.value = initialValue.toString();
     slider.addEventListener('input', (event) => this.handleSliderInput(event));
 

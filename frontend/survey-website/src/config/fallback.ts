@@ -1,7 +1,140 @@
-import type { SurveyConfig } from './types.ts';
+import type { InstanceDayConfig, InstanceVoterConfig, SurveyConfig, SurveyPageConfig } from './types.ts';
 import { resolveQuestionOrderEndpoint } from './api-endpoints.ts';
 
 const questionOrderingSource = resolveQuestionOrderEndpoint();
+
+const instanceIds = [
+  'simple',
+  'complicated',
+  'few_rounds',
+  'few_voters'
+]
+
+const ruleIds = [
+  'approval',
+  'unit_cost',
+  'equal_shares',
+  'phragmen'
+]
+
+const explanationIds = [
+  'none',
+  'mechanical',
+  'instance_based',
+  'llm_generated'
+]
+
+const mechanicalExplanations: Record<string, string> = {
+  "approval": "חוק זה בוחר בכל יום את האפשרות שמאושרת על ידי הכי הרבה מצביעים.",
+  "unit_cost": "חוק זה נותן לכל מצביע תקציב התחלתי של k שקלים (מספר הימים הכולל). על מנת \"לקנות\" אפשרות המצביעים צריכים להוציא n שקלים, המנצחת היא האפשרות שהמאשרים שלה יכולים לקנות כשכל אחד משלם כמה שפחות.",
+  "equal_shares": "חוק זה נותן לכל מצביע משקל, בהתחלה כל המשקלים שווים 1, אך כל מצביע שלא מסופק ביום כלשהו מקבל העלאה של 1 במשקל. בכל יום המנצחת היא האופציה שלה מצביע הכי הרבה משקל על פני כל המאשרים שלה.",
+  "phragmen": "חוק זה נותן לכל מצביע \"עומס\", בהתחלה כל העומסים שווים 0, לאחר בחירת המנצח עומס המצביעים שהצביעו לו מתחלק באופן שווה ביניהם אך עולה בסך הכל ב-1. בכל יום נבחרת קבוצת המצביעים בעלת הבחירה המשותפת שלה יהיה העומס הנמוך ביותר אחרי חלוקה מחדש והוספה של 1.",
+};
+
+const instanceDays: Record<string, InstanceDayConfig[]> = {
+  "simple": [
+
+  ],
+  "complicated": [
+
+  ],
+  "few_rounds": [
+
+  ],
+  "few_voters": [
+
+  ],
+};
+
+const instanceVoters: Record<string, InstanceVoterConfig[]> = {
+  "simple": [
+
+  ],
+  "complicated": [
+
+  ],
+  "few_rounds": [
+
+  ],
+  "few_voters": [
+
+  ],
+};
+
+const instanceBasedExplanations: Record<string, string[]> = {
+  "simple": [
+
+  ],
+  "complicated": [
+
+  ],
+  "few_rounds": [
+
+  ],
+  "few_voters": [
+
+  ],
+};
+
+const llmGeneratedExplanations: Record<string, string[]> = {
+  "simple": [
+
+  ],
+  "complicated": [
+
+  ],
+  "few_rounds": [
+
+  ],
+  "few_voters": [
+
+  ],
+};
+
+const introByType: Record<string, typeof mechanicalExplanations | undefined> = {
+  'none': undefined,
+  'mechanical': mechanicalExplanations,
+  'instance_based': mechanicalExplanations,
+  'llm_generated': undefined,
+}
+
+const explanationsByType: Record<string, Record<string, string[]> | undefined> = {
+  'none': undefined,
+  'mechanical': undefined,
+  'instance_based': instanceBasedExplanations,
+  'llm_generated': llmGeneratedExplanations,
+}
+
+function createInstancePages(): SurveyPageConfig[] {
+  // instance-{instanceId}-{ruleId}-{explanationId}
+  let result: SurveyPageConfig[] = [];
+  for (const instanceId of instanceIds) {
+    for (const ruleId of ruleIds) {
+      for (const explanationId of explanationIds) {
+        result.push({
+          type: 'instance',
+          id: `instance-${instanceId}-${ruleId}-${explanationId}`,
+          props: {
+            title: 'דוגמה למעבר על מופע.',
+            introText: introByType[explanationId]?.[ruleId] ?? '',
+            showResultsExplanation: explanationsByType[explanationId] !== undefined,
+            voters: instanceVoters[instanceId],
+            explanations: explanationsByType[explanationId]?.[instanceId],
+            days: instanceDays[instanceId],
+            rating: {
+              scaleSize: 7,
+              prompt: 'אחרי שראית את כל המנצחים, כמה לדעתך הייתה התוצאה הוגנת באופן כללי?',
+              minLabel: 'לא הוגנת בכלל',
+              maxLabel: 'הוגנת לגמרי',
+            },
+          },
+        })
+      }
+    }
+  }
+  console.log(result);
+  return result;
+}
 
 /**
  * Embedded configuration used when remote survey loading fails or is unavailable.
@@ -80,13 +213,13 @@ export const fallbackSurveyConfig: SurveyConfig = {
               { value: 'highschool', label: 'תיכונית' },
               { value: 'student', label: 'סטודנט לתואר ראשון' },
               { value: 'graduate', label: 'בוגר תואר ראשון' },
-              { value: 'postgrad', label: 'תואר שני ומעלה'}
+              { value: 'postgrad', label: 'תואר שני ומעלה' }
             ],
             outputKey: ['education'],
           },
           {
             id: 'age',
-            prompt: 'מה גילך?',
+            prompt: 'מה גילכם?',
             variant: 'numeric',
             required: true,
             min: 0,
@@ -104,16 +237,21 @@ export const fallbackSurveyConfig: SurveyConfig = {
         title: 'דוגמה למעבר על מופע.',
         introText:
           'למטה ניתן לראות מופע פשוט עם שלושה מצביעים על פני שלושה ימים, התקדמו בימים ובסוף הביעו את דעתכם על ההוגנות.',
+        showResultsExplanation: true,
         voters: [
           { id: 1, label: 'מצביע 1' },
           { id: 2, label: 'מצביע 2' },
           { id: 3, label: 'מצביע 3' },
         ],
+        explanations: [
+          'כאן לפעמים יהיה הסבר מדוע נבחר א\' בתור המנצח.',
+          'כאן לפעמים יהיה הסבר מדוע נבחר ב\' בתור המנצח.',
+          'כאן לפעמים יהיה הסבר מדוע נבחר ג\' בתור המנצח.'
+        ],
         days: [
           {
             day: 1,
             winner: 'א\'',
-            explanation: 'כאן יהיה הסבר מדוע נבחר א\' בתור המנצח.',
             votes: [
               { voterId: 1, selections: ['א\'', 'ב\''] },
               { voterId: 2, selections: ['א\'', 'ב\''] },
@@ -123,7 +261,6 @@ export const fallbackSurveyConfig: SurveyConfig = {
           {
             day: 2,
             winner: 'ב\'',
-            explanation: 'כאן יהיה הסבר מדוע נבחר ב\' בתור המנצח.',
             votes: [
               { voterId: 1, selections: ['ב\'', 'ג\''] },
               { voterId: 2, selections: ['ב\''] },
@@ -133,7 +270,6 @@ export const fallbackSurveyConfig: SurveyConfig = {
           {
             day: 3,
             winner: 'ג\'',
-            explanation: 'כאן יהיה הסבר מדוע נבחר ג\' בתור המנצח.',
             votes: [
               { voterId: 1, selections: ['ג\'', 'ב\''] },
               { voterId: 2, selections: ['ג\''] },
@@ -154,9 +290,10 @@ export const fallbackSurveyConfig: SurveyConfig = {
       id: 'thank-you',
       props: {
         title: 'תודה רבה!',
-        body: 'תודה לכם על ההשתפות, התוצאות ישומשו למחקר.\nאנא לחצאו על "שליחה" על מנת לסיים.',
+        body: 'תודה לכם על ההשתפות, התוצאות ישומשו למחקר.\nאנא לחצו על "שליחה" על מנת לסיים.',
         footnote: ''
       },
     },
+    ...createInstancePages(),
   ],
 };

@@ -85,10 +85,10 @@ async function bootstrap(): Promise<void> {
 				<div class="survey-complete">
 					<h2>${completionCopy.heading}</h2>
 					<p>${completionCopy.body}</p>
-					<h3>${completionCopy.responseHeading}</h3>
-					<pre class="json-display"><code id="survey-complete" dir="ltr"></code></pre>
 					<h3>${completionCopy.serverHeading}</h3>
 					<pre class="json-display"><code id="server-response" dir="ltr"></code></pre>
+					<h3>${completionCopy.responseHeading}</h3>
+					<pre class="json-display"><code id="survey-complete" dir="ltr"></code></pre>
 				</div>
 			`;
 			const surveyCompleteElem = app.querySelector('code#survey-complete');

@@ -48,7 +48,6 @@ export interface InstanceVoteConfig {
 export interface InstanceDayConfig {
   day: number;
   winner: string;
-  explanation?: string;
   votes: InstanceVoteConfig[];
 }
 
@@ -63,7 +62,9 @@ export interface InstancePagePropsConfig {
   title?: string;
   introText?: string;
   voters: InstanceVoterConfig[];
+  showResultsExplanation?: boolean;
   days: InstanceDayConfig[];
+  explanations?: string[];
   rating?: InstanceRatingConfig;
 }
 
