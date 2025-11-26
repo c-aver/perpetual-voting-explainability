@@ -3,7 +3,7 @@ import json
 import tempfile
 import hashlib
 import random
-from datetime import datetime, timezone
+from datetime import datetime
 
 from flask import Flask, request
 from flask_cors import CORS
@@ -19,6 +19,10 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 
 responses_file = os.environ.get('RESPONSE_STORAGE_FILE', '/storage-bucket/responses.json')
+triple_queue_file = os.environ.get('TRIPLE_QUEUE_FILE', '/storage-bucket/triple_queue.json')
+triple_queue_cycles_per_refill = int(os.environ.get('TRIPLE_QUEUE_REFILL_CYCLES', '1'))
+TRIPLE_BLOCK_SIZE = 4
+TRIPLE_CYCLE_SIZE = 64
 
 PREFIX_QUESTIONS = [
     'intro',
@@ -134,35 +138,87 @@ def save_response(response, hashed_ip: str | None = None):
 ensure_storage_file()
 
 
-def shuffled_sequence(options: list[str], count: int) -> list[str]:
-    if not options:
+def load_triple_queue() -> list[dict[str, str]]:
+    try:
+        with open(triple_queue_file, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        return []
+    except json.JSONDecodeError:
         return []
 
-    pool = list(options)
-    result: list[str] = []
+    if not isinstance(data, list):
+        return []
+    return data  # type: ignore[return-value]
 
-    while len(result) < count:
-        random.shuffle(pool)
-        result.extend(pool)
 
-    return result[:count]
+def persist_triple_queue(queue: list[dict[str, str]]) -> None:
+    queue_dir = os.path.dirname(triple_queue_file) or '.'
+    os.makedirs(queue_dir, exist_ok=True)
+    try:
+        with tempfile.NamedTemporaryFile('w', encoding='utf-8', delete=False, dir=queue_dir) as tmp_file:
+            json.dump(queue, tmp_file, ensure_ascii=False)
+            tmp_path = tmp_file.name
+        os.replace(tmp_path, triple_queue_file)
+    except OSError as error:
+        if 'tmp_path' in locals() and os.path.exists(tmp_path):
+            os.remove(tmp_path)
+        raise StorageError('Unable to write triple queue file.') from error
+
+
+def generate_triple_cycle() -> list[dict[str, str]]:
+    blocks = [(u, v) for u in range(4) for v in range(4)]
+    random.shuffle(blocks)
+
+    instance_perm = random.sample(range(4), 4)
+    rule_perm = random.sample(range(4), 4)
+    explanation_perm = random.sample(range(4), 4)
+
+    cycle: list[dict[str, str]] = []
+    for (u, v) in blocks:
+        order = list(range(4))
+        random.shuffle(order)
+        for i in order:
+            a_idx = instance_perm[i]
+            b_idx = rule_perm[(i + u) % 4]
+            c_idx = explanation_perm[(i + v) % 4]
+            cycle.append(
+                {
+                    'instanceId': VOTING_INSTANCE_IDS[a_idx],
+                    'ruleId': RULE_IDS[b_idx],
+                    'explanationId': EXPLANATION_IDS[c_idx],
+                },
+            )
+    return cycle
+
+
+def refill_triple_queue(queue: list[dict[str, str]], required_blocks: int) -> None:
+    total_needed = required_blocks * TRIPLE_BLOCK_SIZE
+    if len(queue) >= total_needed:
+        return
+
+    cycles_needed = max(
+        triple_queue_cycles_per_refill,
+        (total_needed - len(queue) + TRIPLE_CYCLE_SIZE - 1) // TRIPLE_CYCLE_SIZE,
+    )
+
+    new_triples: list[dict[str, str]] = []
+    for _ in range(cycles_needed):
+        new_triples.extend(generate_triple_cycle())
+    queue.extend(new_triples)
 
 
 def generate_question_triples(count: int = QUESTIONS_PER_REQUEST) -> list[dict[str, str]]:
-    instances = shuffled_sequence(VOTING_INSTANCE_IDS, count)
-    rules = shuffled_sequence(RULE_IDS, count)
-    explanations = shuffled_sequence(EXPLANATION_IDS, count)
+    if count % TRIPLE_BLOCK_SIZE != 0:
+        raise ValueError('generate_question_triples count must be a multiple of 4 to preserve coverage guarantees.')
 
-    triples: list[dict[str, str]] = []
-    for index in range(count):
-        triples.append(
-            {
-                'instanceId': instances[index],
-                'ruleId': rules[index],
-                'explanationId': explanations[index],
-            },
-        )
+    queue = load_triple_queue()
+    blocks_needed = count // TRIPLE_BLOCK_SIZE
+    refill_triple_queue(queue, blocks_needed)
 
+    triples = queue[:count]
+    del queue[:count]
+    persist_triple_queue(queue)
     return triples
 
 
