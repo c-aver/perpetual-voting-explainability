@@ -157,7 +157,7 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
       };
       answers[descriptor.id] = payload;
       this.answerMap.set(descriptor.id, payload);
-  this.applySubmissionValue(submission, descriptor.outputKey ?? descriptor.id, payload.value);
+      this.applySubmissionValue(submission, descriptor.outputKey ?? descriptor.id, payload.value);
     }
 
     if (firstInvalid) {

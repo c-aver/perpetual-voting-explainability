@@ -4,19 +4,26 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadSurveyConfig } from './loader.ts';
 import { fallbackSurveyConfig } from './fallback.ts';
 import type { SurveyPageConfig } from './types.ts';
+import { resolveQuestionOrderEndpoint } from './api-endpoints.ts';
 
 describe('loadSurveyConfig', () => {
   let pagesSnapshot: SurveyPageConfig[];
   let settingsSnapshot: typeof fallbackSurveyConfig.settings;
+  let originalFetch: typeof fetch | undefined;
+  const defaultOrderingEndpoint = resolveQuestionOrderEndpoint();
 
   beforeEach(() => {
     pagesSnapshot = [...fallbackSurveyConfig.pages];
     settingsSnapshot = { ...fallbackSurveyConfig.settings };
+    originalFetch = globalThis.fetch;
+    globalThis.fetch = createDefaultOrderingFetch(defaultOrderingEndpoint);
   });
 
   afterEach(() => {
     fallbackSurveyConfig.pages = pagesSnapshot;
     fallbackSurveyConfig.settings = { ...settingsSnapshot };
+    if (originalFetch)
+      globalThis.fetch = originalFetch;
   });
 
   it('returns the static config with localized copy metadata', async () => {
@@ -95,3 +102,20 @@ describe('loadSurveyConfig', () => {
     await expect(loadSurveyConfig()).rejects.toThrow(/cannot specify both "props" and "paramKey"/i);
   });
 });
+
+function createDefaultOrderingFetch(orderingEndpoint: string): typeof fetch {
+  const mock = vi.fn(async (input: RequestInfo | URL) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+    if (url === orderingEndpoint) {
+      const pageIds = fallbackSurveyConfig.pages
+        .map((page) => page.id)
+        .filter((id): id is string => Boolean(id));
+      return new Response(JSON.stringify({ pageIds }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    return new Response('Not Found', { status: 404 });
+  });
+  return mock as unknown as typeof fetch;
+}

@@ -68,6 +68,10 @@ export interface LocalizationBundle {
       maxLength(limit: number): string;
       patternMismatch: string;
     };
+    instance: {
+      revealAllRounds: string;
+      ratingRequired: string;
+    };
   };
   completion: {
     heading: string;
@@ -80,6 +84,15 @@ export interface LocalizationBundle {
   app: {
     loadFailure: string;
     noPages: string;
+  };
+  instancePage: {
+    revealNextDay(day: number): string;
+    ratingPrompt: string;
+    sliderMinLabel: string;
+    sliderMaxLabel: string;
+    voterHeaderLabel: string;
+    dayHeader(day: number): string;
+    winnerRowLabel: string;
   };
 }
 

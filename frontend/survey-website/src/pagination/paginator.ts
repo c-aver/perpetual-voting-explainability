@@ -71,7 +71,7 @@ export class Paginator {
     root: HTMLDivElement,
     descriptors: PageDescriptor[],
     registry: PageRegistry,
-    options: PaginatorOptions = {},
+    options: PaginatorOptions,
   ) {
     if (descriptors.length === 0) {
       throw new Error('Paginator requires at least one page descriptor.');

@@ -36,7 +36,9 @@ h1 {
 }
 
 #app {
+  width: 100%;
   max-width: 1280px;
+  min-width: 0;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
@@ -300,6 +302,139 @@ button:disabled {
   border-color: #646cff;
 }
 
+.instance-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  text-align: start;
+  direction: inherit;
+}
+
+.instance-page__table {
+  width: max-content;
+  min-width: 100%;
+}
+
+.instance-page__intro {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.instance-page__table-container {
+  width: 100%;
+  min-width: 0;
+}
+
+.instance-page__table-scroll {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  display: block;
+}
+
+.instance-page__table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 12px;
+  background: transparent;
+}
+
+.instance-page__table th,
+.instance-page__table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  text-align: start;
+  min-width: 3.7ch;
+}
+
+.instance-page__table thead th {
+  border-bottom: 2px solid rgba(255, 255, 255, 0.25);
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.instance-page__table tbody th {
+  font-weight: 600;
+  width: 140px;
+}
+
+.instance-page__table tbody tr:last-child th,
+.instance-page__table tbody tr:last-child td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.instance-page__table tfoot th,
+.instance-page__table tfoot td {
+  border-top: 2px solid rgba(255, 255, 255, 0.25);
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.instance-page__winner-row th {
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+}
+
+.instance-page__cell--frozen {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: rgba(20, 20, 20, 0.85);
+  backdrop-filter: blur(2px);
+  box-shadow: 4px 0 6px rgba(0, 0, 0, 0.2);
+  min-width: 5ch;
+}
+
+.instance-page__table thead .instance-page__cell--frozen {
+  z-index: 4;
+}
+
+[dir="rtl"] .instance-page__cell--frozen {
+  left: auto;
+  right: 0;
+  box-shadow: -4px 0 6px rgba(0, 0, 0, 0.25);
+}
+
+.instance-page__cell--highlight {
+  position: relative;
+  box-shadow: inset 0 0 0 2px rgba(100, 108, 255, 0.6);
+  background: rgba(100, 108, 255, 0.15);
+}
+
+.instance-page__explanations {
+  display: flex;
+  flex-direction: column;
+}
+
+.instance-page__explanation-list {
+  margin: 0;
+  padding-inline-start: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.instance-page__explanation-heading {
+  margin: 0;
+  font-weight: 600;
+  text-align: start;
+}
+
+.instance-page__winner-explanation {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
+  text-align: start;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -358,5 +493,41 @@ button:disabled {
   }
   .survey-complete__data {
     background: rgba(0, 0, 0, 0.05);
+  }
+  .instance-page__intro {
+    color: #4f5967;
+  }
+  .instance-page__table {
+    background: #ffffff;
+  }
+  .instance-page__table-scroll {
+    border-color: rgba(0, 0, 0, 0.12);
+    background: rgba(0, 0, 0, 0.02);
+  }
+  .instance-page__table th,
+  .instance-page__table td {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  .instance-page__table thead th {
+    border-bottom: 2px solid rgba(0, 0, 0, 0.12);
+  }
+  .instance-page__table tfoot th,
+  .instance-page__table tfoot td {
+    border-top: 2px solid rgba(0, 0, 0, 0.12);
+    background: rgba(0, 0, 0, 0.03);
+  }
+  .instance-page__winner-explanation {
+    color: #4f5967;
+  }
+  .instance-page__cell--highlight {
+    box-shadow: inset 0 0 0 2px rgba(40, 76, 206, 0.4);
+    background: rgba(40, 76, 206, 0.12);
+  }
+  .instance-page__cell--frozen {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 4px 0 6px rgba(0, 0, 0, 0.08);
+  }
+  [dir="rtl"] .instance-page__cell--frozen {
+    box-shadow: -4px 0 6px rgba(0, 0, 0, 0.08);
   }
 }

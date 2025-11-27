@@ -15,6 +15,7 @@ export interface TextPageProps {
 export class TextPage extends BasePage<void, TextPageProps> {
   render(): void {
     const { title, body, footnote } = this.descriptor.props ?? { body: '' };
+    const formattedBody = (body ?? '').replace(/\n/g, '<br />');
 
     const headerMarkup = title ? `<h2>${title}</h2>` : '';
     const footnoteMarkup = footnote ? `<p class="text-page__footnote">${footnote}</p>` : '';
@@ -22,7 +23,7 @@ export class TextPage extends BasePage<void, TextPageProps> {
     this.container.innerHTML = `
       <div class="text-page">
         ${headerMarkup}
-        <p>${body}</p>
+        <p>${formattedBody}</p>
         ${footnoteMarkup}
       </div>
     `;

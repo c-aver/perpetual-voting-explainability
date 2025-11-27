@@ -42,6 +42,10 @@ const enUS: LocalizationBundle = {
       maxLength: (limit) => `Response must be shorter than ${limit} characters.`,
       patternMismatch: 'Response does not match the required format.',
     },
+    instance: {
+      revealAllRounds: 'Reveal all voting days before continuing.',
+      ratingRequired: 'Select a fairness rating to continue.',
+    },
   },
   completion: {
     heading: 'Thank you!',
@@ -54,6 +58,15 @@ const enUS: LocalizationBundle = {
   app: {
     loadFailure: 'Failed to load survey definition.',
     noPages: 'No survey pages are configured.',
+  },
+  instancePage: {
+    revealNextDay: (day) => `Show day ${day}`,
+    ratingPrompt: 'How fair do you find these results?',
+    sliderMinLabel: 'Unfair',
+    sliderMaxLabel: 'Very fair',
+    voterHeaderLabel: 'Voter',
+    dayHeader: (day) => `Day ${day}`,
+    winnerRowLabel: 'Winner',
   },
 };
 
@@ -97,6 +110,10 @@ const heIL: LocalizationBundle = {
       maxLength: (limit) => `התשובה חייבת להיות קצרה מ-${limit} תווים.`,
       patternMismatch: 'התשובה אינה עומדת בתבנית הנדרשת.',
     },
+    instance: {
+      revealAllRounds: 'חשפו את כל ימי ההצבעה לפני ההמשך.',
+      ratingRequired: 'בחרו דירוג הוגנות כדי להמשיך.',
+    },
   },
   completion: {
     heading: 'תודה!',
@@ -109,6 +126,15 @@ const heIL: LocalizationBundle = {
   app: {
     loadFailure: 'טעינת הסקר נכשלה.',
     noPages: 'אין עמודי סקר זמינים.',
+  },
+  instancePage: {
+    revealNextDay: (day) => `הצג את יום ${day}`,
+    ratingPrompt: 'עד כמה התוצאות הללו הוגנות?',
+    sliderMinLabel: 'לא הוגן',
+    sliderMaxLabel: 'הוגן מאוד',
+    voterHeaderLabel: 'מצביע',
+    dayHeader: (day) => `יום ${day}`,
+    winnerRowLabel: 'מנצח',
   },
 };
 
