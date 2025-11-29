@@ -249,6 +249,7 @@ def get_questions():
         for triple in triples
     ]
     questions = PREFIX_QUESTIONS + randomized_questions + POSTFIX_QUESTIONS
+    print(f"Sending requested questions: {questions}")
     return { 'pageIds': questions }, HTTPStatus.OK
 
 

@@ -17,6 +17,9 @@ describe('loadSurveyConfig', () => {
     settingsSnapshot = { ...fallbackSurveyConfig.settings };
     originalFetch = globalThis.fetch;
     globalThis.fetch = createDefaultOrderingFetch(defaultOrderingEndpoint);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.clear();
+    }
   });
 
   afterEach(() => {
@@ -24,6 +27,9 @@ describe('loadSurveyConfig', () => {
     fallbackSurveyConfig.settings = { ...settingsSnapshot };
     if (originalFetch)
       globalThis.fetch = originalFetch;
+    if (typeof localStorage !== 'undefined') {
+      localStorage.clear();
+    }
   });
 
   it('returns the static config with localized copy metadata', async () => {
@@ -31,20 +37,20 @@ describe('loadSurveyConfig', () => {
 
     expect(result.source).toBe('static');
     expect(result.pages.length).toBeGreaterThan(0);
-    expect(result.copy.locale).toBe('en-US');
-    expect(result.settings.language).toBe('en-US');
+    expect(result.copy.locale).toBe('he-IL');
+    expect(result.settings.language).toBe('he-IL');
 
     const intro = result.pages.find((page) => page.id === 'intro');
-    expect(intro?.parameterMeta?.templateKey).toBe('welcome');
+    expect(intro).toBeDefined();
   });
 
   it('honours explicit language overrides when provided', async () => {
-    const searchParams = new URLSearchParams({ lang: 'he-IL' });
+    const searchParams = new URLSearchParams({ lang: 'en-US' });
     const result = await loadSurveyConfig({ searchParams });
 
-    expect(result.settings.language).toBe('he-IL');
-    expect(result.settings.direction).toBe('rtl');
-    expect(result.copy.locale).toBe('he-IL');
+    expect(result.settings.language).toBe('en-US');
+    expect(result.settings.direction).toBe('ltr');
+    expect(result.copy.locale).toBe('en-US');
   });
 
   it('applies backend ordering when the endpoint returns IDs', async () => {
@@ -55,7 +61,7 @@ describe('loadSurveyConfig', () => {
     };
 
     const orderingPayload = {
-      pageIds: ['finish', 'intro'],
+      pageIds: ['thank-you', 'intro'],
     };
 
     const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
@@ -71,11 +77,11 @@ describe('loadSurveyConfig', () => {
 
     const result = await loadSurveyConfig({ fetchImpl });
     const ids = result.pages.map((page) => page.id);
-    expect(ids[0]).toBe('finish');
+    expect(ids[0]).toBe('thank-you');
     expect(ids[1]).toBe('intro');
   });
 
-  it('falls back to a single welcome page when ordering fails', async () => {
+  it('falls back to curated instance ordering when the endpoint fails', async () => {
     const orderingUrl = 'https://example.test/broken-order.json';
     fallbackSurveyConfig.settings = {
       ...settingsSnapshot,
@@ -85,8 +91,135 @@ describe('loadSurveyConfig', () => {
     const fetchImpl = vi.fn(async () => new Response('nope', { status: 500 }));
 
     const result = await loadSurveyConfig({ fetchImpl });
-    expect(result.pages).toHaveLength(1);
-    expect(result.pages[0]?.id).toBe('intro');
+    expect(result.pages).toHaveLength(10);
+    expect(result.pages.slice(0, 4).map((page) => page.id)).toEqual([
+      'intro',
+      'demographic',
+      'overview',
+      'perpetual-demo',
+    ]);
+    expect(result.pages.slice(-2).map((page) => page.id)).toEqual(['feedback', 'thank-you']);
+    const randomizedSection = result.pages.slice(4, -2);
+    randomizedSection.forEach((page) => {
+      expect(page.id?.startsWith('instance-')).toBe(true);
+    });
+  });
+
+  it('uses curated fallback ordering when no backend ordering source is configured', async () => {
+    fallbackSurveyConfig.settings = {
+      ...settingsSnapshot,
+      pageSequenceSource: undefined,
+    };
+
+    const result = await loadSurveyConfig();
+    expect(result.pages).toHaveLength(10);
+    expect(result.pages.slice(0, 4).map((page) => page.id)).toEqual([
+      'intro',
+      'demographic',
+      'overview',
+      'perpetual-demo',
+    ]);
+    expect(result.pages.slice(-2).map((page) => page.id)).toEqual(['feedback', 'thank-you']);
+    result.pages.slice(4, -2).forEach((page) => {
+      expect(page.id?.startsWith('instance-')).toBe(true);
+    });
+  });
+
+  it('reuses persisted ordering when fallback ordering is triggered', async () => {
+    const orderingUrl = 'https://example.test/offline-order.json';
+    fallbackSurveyConfig.settings = {
+      ...settingsSnapshot,
+      pageSequenceSource: orderingUrl,
+    };
+
+    const storageKey = fallbackSurveyConfig.settings.storageKey;
+    if (!storageKey) {
+      throw new Error('Test requires storageKey');
+    }
+    const storedOrder = [
+      'intro',
+      'demographic',
+      'overview',
+      'perpetual-demo',
+      'instance-simple-approval-none',
+      'instance-complicated-unit_cost-mechanical',
+      'instance-few_rounds-equal_shares-instance_based',
+      'instance-few_voters-phragmen-llm_generated',
+      'feedback',
+      'thank-you',
+    ];
+
+    localStorage.setItem(storageKey, JSON.stringify({
+      version: 'v9',
+      currentIndex: 0,
+      dataByKey: {},
+      pageOrder: storedOrder,
+    }));
+
+    const fetchImpl = vi.fn(async () => {
+      throw new Error('fetch should not be called when order is persisted');
+    });
+
+    const result = await loadSurveyConfig({ fetchImpl });
+    const ids = result.pages.map((page) => page.id);
+    expect(ids).toEqual(storedOrder);
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('persists generated fallback ordering for future reloads', async () => {
+    const orderingUrl = 'https://example.test/persist-order.json';
+    fallbackSurveyConfig.settings = {
+      ...settingsSnapshot,
+      pageSequenceSource: orderingUrl,
+    };
+
+    const fetchImpl = vi.fn(async () => new Response('nope', { status: 500 }));
+
+    const result = await loadSurveyConfig({ fetchImpl });
+    const storageKey = fallbackSurveyConfig.settings.storageKey;
+    if (!storageKey) {
+      throw new Error('Test requires storageKey');
+    }
+    const snapshot = localStorage.getItem(storageKey);
+    expect(snapshot).not.toBeNull();
+    const parsed = snapshot ? JSON.parse(snapshot) as { pageOrder?: string[] } : null;
+    expect(parsed?.pageOrder).toEqual(result.pages.map((page) => page.id));
+  });
+
+  it('reuses persisted ordering even when no backend ordering source exists', async () => {
+    fallbackSurveyConfig.settings = {
+      ...settingsSnapshot,
+      pageSequenceSource: undefined,
+    };
+
+    const storageKey = fallbackSurveyConfig.settings.storageKey;
+    if (!storageKey) {
+      throw new Error('Test requires storageKey');
+    }
+
+    const storedOrder = [
+      'intro',
+      'demographic',
+      'overview',
+      'perpetual-demo',
+      'instance-simple-approval-instance_based',
+      'instance-complicated-unit_cost-none',
+      'instance-few_rounds-approval-mechanical',
+      'instance-few_voters-phragmen-llm_generated',
+      'feedback',
+      'thank-you',
+    ];
+
+    localStorage.setItem(storageKey, JSON.stringify({
+      version: 'v2',
+      currentIndex: 0,
+      dataByKey: {},
+      pageOrder: storedOrder,
+    }));
+
+    const result = await loadSurveyConfig();
+    const ids = result.pages.map((page) => page.id);
+    expect(ids).toEqual(storedOrder);
   });
 
   it('throws when both props and paramKey are provided for a descriptor', async () => {

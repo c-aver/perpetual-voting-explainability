@@ -257,7 +257,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
 
       const explanation = document.createElement('p');
       explanation.className = 'instance-page__winner-explanation';
-      explanation.textContent = entry.text ?? '';
+      this.appendTextWithLineBreaks(explanation, entry.text ?? '');
       item.appendChild(explanation);
 
       list.appendChild(item);

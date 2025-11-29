@@ -1,5 +1,11 @@
-import type { InstanceDayConfig, InstanceVoterConfig, SurveyConfig, SurveyPageConfig } from './types.ts';
+import type { InstanceDayConfig, SurveyConfig, SurveyPageConfig } from './types.ts';
 import { resolveQuestionOrderEndpoint } from './api-endpoints.ts';
+import {
+  instanceBasedExplanations,
+  instanceDays,
+  instanceVoters,
+  llmGeneratedExplanations,
+} from './instance-data.ts';
 
 const questionOrderingSource = resolveQuestionOrderEndpoint();
 
@@ -31,65 +37,6 @@ const mechanicalExplanations: Record<string, string> = {
   "phragmen": "חוק זה נותן לכל מצביע \"עומס\", בהתחלה כל העומסים שווים 0, לאחר בחירת המנצח עומס המצביעים שהצביעו לו מתחלק באופן שווה ביניהם אך עולה בסך הכל ב-1. האפשרות המנצחת בכל יום היא זו שיש לה קבוצת מצביעים שיקבלו את העומס הנמוך ביותר.",
 };
 
-const instanceDays: Record<string, InstanceDayConfig[]> = {
-  "simple": [
-
-  ],
-  "complicated": [
-
-  ],
-  "few_rounds": [
-
-  ],
-  "few_voters": [
-
-  ],
-};
-
-const instanceVoters: Record<string, InstanceVoterConfig[]> = {
-  "simple": [
-
-  ],
-  "complicated": [
-
-  ],
-  "few_rounds": [
-
-  ],
-  "few_voters": [
-
-  ],
-};
-
-const instanceBasedExplanations: Record<string, string[]> = {
-  "simple": [
-
-  ],
-  "complicated": [
-
-  ],
-  "few_rounds": [
-
-  ],
-  "few_voters": [
-
-  ],
-};
-
-const llmGeneratedExplanations: Record<string, string[]> = {
-  "simple": [
-
-  ],
-  "complicated": [
-
-  ],
-  "few_rounds": [
-
-  ],
-  "few_voters": [
-
-  ],
-};
 
 const introByType: Record<string, string> = {
   'none': 'עבור מופע זה אתם נדרשים לדרג את ההוגנות ללא הסבר.',
@@ -105,11 +52,23 @@ const ruleExplanationByType: Record<string, Record<string, string> | undefined> 
   'llm_generated': undefined,
 }
 
-const explanationsByType: Record<string, Record<string, string[]> | undefined> = {
-  'none': undefined,
-  'mechanical': undefined,
-  'instance_based': instanceBasedExplanations,
-  'llm_generated': llmGeneratedExplanations,
+function resolveInstanceDays(instanceId: string, ruleId: string): InstanceDayConfig[] {
+  return instanceDays[instanceId]?.[ruleId] ?? [];
+}
+
+function resolveInstanceExplanations(instanceId: string, ruleId: string, explanationId: string): string[] | undefined {
+  if (explanationId === 'instance_based') {
+    return instanceBasedExplanations[instanceId]?.[ruleId];
+  }
+  if (explanationId === 'llm_generated') {
+    return llmGeneratedExplanations[instanceId]?.[ruleId];
+  }
+  return undefined;
+}
+
+function shouldShowResultsExplanation(explanationId: string, explanations?: string[]): boolean {
+  const wantsExplanation = explanationId === 'instance_based' || explanationId === 'llm_generated';
+  return wantsExplanation && Boolean(explanations && explanations.length > 0);
 }
 
 function createInstancePages(): SurveyPageConfig[] {
@@ -118,16 +77,18 @@ function createInstancePages(): SurveyPageConfig[] {
   for (const instanceId of instanceIds) {
     for (const ruleId of ruleIds) {
       for (const explanationId of explanationIds) {
+        const days = resolveInstanceDays(instanceId, ruleId);
+        const explanations = resolveInstanceExplanations(instanceId, ruleId, explanationId);
         result.push({
           type: 'instance',
           id: `instance-${instanceId}-${ruleId}-${explanationId}`,
           props: {
             title: 'דוגמה למעבר על מופע.', // TODO: change to something representative?
             introText: introByType[explanationId] + "\n" + (ruleExplanationByType[explanationId]?.[ruleId] ?? ""),
-            showResultsExplanation: explanationsByType[explanationId] !== undefined,
-            voters: instanceVoters[instanceId],
-            explanations: explanationsByType[explanationId]?.[instanceId],
-            days: instanceDays[instanceId],
+            showResultsExplanation: shouldShowResultsExplanation(explanationId, explanations),
+            voters: instanceVoters[instanceId] ?? [],
+            explanations,
+            days,
             rating: {
               scaleSize: 7,
               prompt: 'אחרי שראית את כל המנצחים, כמה לדעתך הייתה התוצאה הוגנת באופן כללי?',

@@ -43,7 +43,13 @@ export async function loadSurveyConfig(
   const config = fallbackSurveyConfig;
 
   const resolvedPages = await resolvePageConfigs(config.pages);
-  const orderedPages = await applyBackendOrdering(resolvedPages, config.settings, fetcher);
+  const storageKey = config.settings?.storageKey;
+  const storageVersion = config.settings?.storageVersion;
+  const persistedOrder = readPersistedPageOrder(storageKey);
+  const persistedPages = resolvePersistedOrder(resolvedPages, persistedOrder);
+  const orderedPages = persistedPages
+    ?? await applyBackendOrdering(resolvedPages, config.settings, fetcher);
+  persistPageOrderSnapshot(storageKey, storageVersion, orderedPages);
 
   const settings = resolveSettings(config.settings, languageOverride);
   const copy = resolveCopyCatalog(settings.language);
@@ -125,7 +131,7 @@ async function applyBackendOrdering(
 ): Promise<PageDescriptor[]> {
   const source = settings?.pageSequenceSource;
   if (!source) {
-    return pages;
+    return buildOrderingFailureFallback(pages);
   }
 
   if (!fetcher) {
@@ -135,8 +141,8 @@ async function applyBackendOrdering(
 
   const resolvedUrl = resolveChildUrl(source);
   if (!resolvedUrl) {
-    console.warn('Unable to resolve page ordering URL; using fallback ordering.');
-    return buildOrderingFailureFallback(pages);
+        console.warn('Unable to resolve page ordering URL; using fallback ordering.');
+        return buildOrderingFailureFallback(pages);
   }
 
   try {
@@ -168,7 +174,6 @@ async function applyBackendOrdering(
       }
     }
 
-    console.log(ordered);
     return ordered;
   } catch (error) {
     console.warn('Failed to load backend page ordering. Using fallback ordering.', error);
@@ -260,7 +265,7 @@ function resolveChildUrl(path: string, baseUrl?: URL): URL | undefined {
 }
 
 function buildOrderingFailureFallback(pages: PageDescriptor[]): PageDescriptor[] {
-  console.warn("Using order failure fallback")
+  console.warn('Using order failure fallback');
   if (pages.length === 0) {
     return [];
   }
@@ -279,10 +284,97 @@ function buildOrderingFailureFallback(pages: PageDescriptor[]): PageDescriptor[]
   return [pages[0]];
 }
 
+function resolvePersistedOrder(
+  pages: PageDescriptor[],
+  persistedOrder?: string[],
+): PageDescriptor[] | undefined {
+  if (!persistedOrder || persistedOrder.length === 0) {
+    return undefined;
+  }
+
+  const persistedPages = collectPagesById(pages, persistedOrder);
+  const hasAllEntries = persistedPages.length === persistedOrder.length;
+  const hasInstancePage = persistedPages.some((page) => page.id?.startsWith('instance-'));
+  return hasAllEntries && hasInstancePage ? persistedPages : undefined;
+}
+
 function collectPagesById(pages: PageDescriptor[], ids: string[]): PageDescriptor[] {
   return ids
     .map((id) => pages.find((page) => page.id === id))
     .filter((page): page is PageDescriptor => Boolean(page));
+}
+
+interface PersistedPaginatorStateSnapshot {
+  version?: string;
+  currentIndex?: number;
+  dataByKey?: Record<string, unknown>;
+  durationsByKey?: Record<string, number>;
+  completed?: boolean;
+  pageOrder?: string[];
+  [key: string]: unknown;
+}
+
+function readPersistedPageOrder(storageKey?: string): string[] | undefined {
+  if (!storageKey || typeof window === 'undefined' || !window.localStorage) {
+    return undefined;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) {
+      return undefined;
+    }
+
+    const parsed = JSON.parse(raw) as PersistedPaginatorStateSnapshot;
+    if (!parsed || !Array.isArray(parsed.pageOrder)) {
+      return undefined;
+    }
+
+    const list = parsed.pageOrder.filter((value): value is string => typeof value === 'string' && value.length > 0);
+    return list.length > 0 ? list : undefined;
+  } catch (error) {
+    console.warn('Failed to read persisted page order.', error);
+    return undefined;
+  }
+}
+
+function persistPageOrderSnapshot(
+  storageKey: string | undefined,
+  storageVersion: string | undefined,
+  pages: PageDescriptor[] | undefined,
+): void {
+  if (!storageKey || typeof window === 'undefined' || !window.localStorage) {
+    return;
+  }
+
+  if (!pages || pages.length === 0) {
+    return;
+  }
+
+  const order = pages
+    .map((page) => page.id)
+    .filter((id): id is string => typeof id === 'string' && id.length > 0);
+
+  if (order.length === 0) {
+    return;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    const parsed = raw ? JSON.parse(raw) as PersistedPaginatorStateSnapshot : undefined;
+    const snapshot: PersistedPaginatorStateSnapshot = typeof parsed === 'object' && parsed !== null
+      ? { ...parsed }
+      : {};
+
+    snapshot.version = typeof snapshot.version === 'string'
+      ? snapshot.version
+      : storageVersion ?? 'v1';
+    snapshot.pageOrder = order;
+
+    window.localStorage.setItem(storageKey, JSON.stringify(snapshot));
+  } catch (error) {
+    console.warn('Failed to persist page order snapshot.', error);
+  }
 }
 
 function generateInstancePageIds(count: number): string[] {

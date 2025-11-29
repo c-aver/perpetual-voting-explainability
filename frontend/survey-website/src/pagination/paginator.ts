@@ -423,6 +423,62 @@ export class Paginator {
     return descriptor.id ?? `${descriptor.type}-${index}`;
   }
 
+  private computeOrderKey(descriptor: PageDescriptor): string | undefined {
+    if (descriptor.id) {
+      return descriptor.id;
+    }
+
+    if (descriptor.parameterMeta?.signature) {
+      return descriptor.parameterMeta.signature;
+    }
+
+    if (descriptor.paramKey) {
+      return `${descriptor.paramKey}`;
+    }
+
+    return undefined;
+  }
+
+  private collectPageOrder(): string[] | undefined {
+    const keys = this.descriptors
+      .map((descriptor) => this.computeOrderKey(descriptor))
+      .filter((key): key is string => Boolean(key));
+
+    return keys.length > 0 ? keys : undefined;
+  }
+
+  private applyStoredPageOrder(orderKeys: string[]): void {
+    const keyedDescriptors = new Map<string, PageDescriptor>();
+    const unkeyedDescriptors: PageDescriptor[] = [];
+
+    this.descriptors.forEach((descriptor) => {
+      const key = this.computeOrderKey(descriptor);
+      if (key) {
+        if (!keyedDescriptors.has(key)) {
+          keyedDescriptors.set(key, descriptor);
+        }
+      } else {
+        unkeyedDescriptors.push(descriptor);
+      }
+    });
+
+    const ordered: PageDescriptor[] = [];
+    orderKeys.forEach((key) => {
+      const descriptor = keyedDescriptors.get(key);
+      if (descriptor) {
+        ordered.push(descriptor);
+        keyedDescriptors.delete(key);
+      }
+    });
+
+    keyedDescriptors.forEach((descriptor) => ordered.push(descriptor));
+    ordered.push(...unkeyedDescriptors);
+
+    if (ordered.length === this.descriptors.length) {
+      this.descriptors.splice(0, this.descriptors.length, ...ordered);
+    }
+  }
+
   /**
    * Returns the internal flow state used to drive progress indicators and callbacks.
    */
@@ -482,6 +538,13 @@ export class Paginator {
         }
       });
 
+      const storedOrder = Array.isArray(parsed.pageOrder)
+        ? parsed.pageOrder.filter((key): key is string => typeof key === 'string' && key.length > 0)
+        : undefined;
+      if (storedOrder && storedOrder.length > 0) {
+        this.applyStoredPageOrder(storedOrder);
+      }
+
       if (this.resumeFromStorage) {
         const safeIndex = Number.isInteger(parsed.currentIndex)
           ? Math.min(Math.max(parsed.currentIndex ?? 0, 0), this.descriptors.length - 1)
@@ -512,11 +575,14 @@ export class Paginator {
         durations[key] = value;
       });
 
+      const pageOrder = this.collectPageOrder();
+
       const payload: PersistedPaginatorState = {
         version: this.storageVersion,
         currentIndex: this.currentIndex,
         dataByKey: data,
         durationsByKey: durations,
+        pageOrder,
       };
 
       window.localStorage.setItem(this.storageKey, JSON.stringify(payload));
@@ -638,4 +704,5 @@ interface PersistedPaginatorState {
   dataByKey: Record<string, unknown>;
   completed?: boolean;
   durationsByKey?: Record<string, number>;
+  pageOrder?: string[];
 }

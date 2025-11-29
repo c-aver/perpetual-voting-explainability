@@ -165,7 +165,11 @@ describe('Paginator', () => {
     const storedSnapshot = localStorage.getItem(storageKey);
     expect(storedSnapshot).not.toBeNull();
     const parsed = storedSnapshot
-      ? JSON.parse(storedSnapshot) as { dataByKey: Record<string, unknown>; durationsByKey?: Record<string, number> }
+      ? JSON.parse(storedSnapshot) as {
+        dataByKey: Record<string, unknown>;
+        durationsByKey?: Record<string, number>;
+        pageOrder?: string[];
+      }
       : null;
     expect(parsed?.dataByKey?.alpha).toBe('Alpha page');
     expect(parsed?.durationsByKey?.alpha).toBeDefined();
@@ -192,6 +196,56 @@ describe('Paginator', () => {
     await vi.waitFor(() => {
       expect(localStorage.getItem(storageKey)).toBeNull();
     });
+  });
+
+  it('reapplies persisted page ordering across reloads', async () => {
+    localStorage.clear();
+
+    document.body.innerHTML = '<div id="app"></div>';
+    const firstApp = document.querySelector<HTMLDivElement>('#app');
+    if (!firstApp) throw new Error('Missing app container');
+
+    const descriptors: PageDescriptor<MockPageProps>[] = [
+      { type: 'mock', id: 'alpha', props: { message: 'Page alpha' } },
+      { type: 'mock', id: 'beta', props: { message: 'Page beta' } },
+      { type: 'mock', id: 'gamma', props: { message: 'Page gamma' } },
+    ];
+
+    const storageKey = 'paginator-order-test';
+    const paginator = new Paginator(firstApp, descriptors, registry, {
+      storageKey,
+      copy,
+    });
+
+    paginator.start();
+
+    await vi.waitFor(() => {
+      expect(localStorage.getItem(storageKey)).not.toBeNull();
+    });
+
+    paginator.dispose();
+
+    const snapshot = localStorage.getItem(storageKey);
+    expect(snapshot).not.toBeNull();
+    const storedOrder = snapshot ? (JSON.parse(snapshot).pageOrder as string[] | undefined) : undefined;
+    expect(storedOrder).toEqual(['alpha', 'beta', 'gamma']);
+
+    document.body.innerHTML = '<div id="app"></div>';
+    const secondApp = document.querySelector<HTMLDivElement>('#app');
+    if (!secondApp) throw new Error('Missing second app container');
+
+    const shuffled = [descriptors[2], descriptors[0], descriptors[1]];
+    const resumed = new Paginator(secondApp, shuffled, registry, {
+      storageKey,
+      copy,
+    });
+
+    resumed.start();
+
+    expect(secondApp.querySelector('.survey-shell__content')?.textContent).toContain('Page alpha');
+
+    resumed.dispose();
+    localStorage.clear();
   });
 
   it('resets the flow when reset is confirmed', async () => {
