@@ -11,6 +11,7 @@ export interface InstancePageResult {
   revealedDays: number;
   totalDays: number;
   rating?: number;
+  maxRating: number;
 }
 
 const DEFAULT_SLIDER_LENGTH = 5;
@@ -405,10 +406,12 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
   }
 
   private buildResult(): InstancePageResult {
+    const ratingConfig = this.normalizeRatingConfig(this.getProps().rating);
     return {
       revealedDays: this.revealedDays,
       totalDays: this.getTotalDays(),
       rating: this.rating,
+      maxRating: ratingConfig.scaleSize,
     };
   }
 
