@@ -8,6 +8,26 @@ import {
 } from './instance-data.ts';
 import textsCsv from './texts.csv?raw';
 
+const TEXTS_CSV_URL = import.meta.env.VITE_TEXTS_CSV_URL ?? '';
+
+function normalizeCsvUrl(url: string): string {
+  if (!url || !url.includes('docs.google.com/spreadsheets')) {
+    return url;
+  }
+  const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  if (!match) {
+    return url;
+  }
+  const docId = match[1];
+  const gidMatch = url.match(/[?&]gid=(\d+)/);
+  const gid = gidMatch ? gidMatch[1] : undefined;
+  const params = new URLSearchParams({ format: 'csv' });
+  if (gid) {
+    params.set('gid', gid);
+  }
+  return `https://docs.google.com/spreadsheets/d/${docId}/export?${params.toString()}`;
+}
+
 function buildTextLookup(source: string): Record<string, string> {
   const map: Record<string, string> = {};
   const lines = source.split(/\r?\n/);
@@ -54,7 +74,28 @@ function buildTextLookup(source: string): Record<string, string> {
   return map;
 }
 
-const texts = buildTextLookup(textsCsv);
+async function loadTextsCsv(): Promise<string> {
+  if (!TEXTS_CSV_URL) {
+    return textsCsv;
+  }
+  if (typeof fetch !== 'function') {
+    return textsCsv;
+  }
+  const normalizedUrl = normalizeCsvUrl(TEXTS_CSV_URL);
+  try {
+    const response = await fetch(normalizedUrl, { cache: 'no-cache' });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch texts CSV: ${response.status} ${response.statusText}`);
+    }
+    console.log("Got CSV response!");
+    return await response.text();
+  } catch (error) {
+    console.warn('Unable to load remote texts CSV, falling back to bundled copy.', error);
+    return textsCsv;
+  }
+}
+
+const texts = buildTextLookup(await loadTextsCsv());
 
 const questionOrderingSource = resolveQuestionOrderEndpoint();
 
@@ -258,7 +299,7 @@ export const fallbackSurveyConfig: SurveyConfig = {
       props: {
         title: texts['fallback.pages:perpetual-demo:title'] ?? 'דוגמה למעבר על מופע.',
         introText:
-          texts['fallback.pages:perpetual-demo:introText'] ?? 'למטה ניתן לראות מופע פשוט...',
+          texts['fallback.pages:perpetual-demo:introText'] ?? 'למטה ניתן לראות מופע פשוט עם שלושה מצביעים על פני שלושה ימים, התקדמו בימים ובסוף הביעו את דעתכם על ההוגנות.\nבשאלות הבאות ייתכן ויופיעו הסברים למה החוק בחר את המנצח שבחר.',
         showResultsExplanation: true,
         voters: [
           { id: 1, label: texts['fallback.pages:perpetual-demo:voters:1:label'] ?? 'מצביע 1' },
@@ -266,12 +307,12 @@ export const fallbackSurveyConfig: SurveyConfig = {
           { id: 3, label: texts['fallback.pages:perpetual-demo:voters:3:label'] ?? 'מצביע 3' },
         ],
         explanations: [
-          texts['fallback.pages:perpetual-demo:explanations:0'] ?? 'כאן לפעמים יהיה הסבר...',
-          texts['fallback.pages:perpetual-demo:explanations:1'] ?? 'עבור כל מופע...',
-          texts['fallback.pages:perpetual-demo:explanations:2'] ?? 'לאחר שתראו את כל המופע...',
-          texts['fallback.pages:perpetual-demo:explanations:3'] ?? 'כאן לפעמים יהיה הסבר...',
-          texts['fallback.pages:perpetual-demo:explanations:4'] ?? 'עבור כל מופע...',
-          texts['fallback.pages:perpetual-demo:explanations:5'] ?? 'לאחר שתראו את כל המופע...',
+          texts['fallback.pages:perpetual-demo:explanations:0'] ?? 'כאן לפעמים יהיה הסבר מדוע נבחר א\' בתור המנצח ביום הראשון.',
+          texts['fallback.pages:perpetual-demo:explanations:1'] ?? 'עבור כל מופע תראו הסברים שונים.',
+          texts['fallback.pages:perpetual-demo:explanations:2'] ?? 'לאחר שתראו את כל המופע, תעברו לשלב הבא.',
+          texts['fallback.pages:perpetual-demo:explanations:3'] ?? 'כאן לפעמים יהיה הסבר מדוע נבחר א\' בתור המנצח ביום הראשון.',
+          texts['fallback.pages:perpetual-demo:explanations:4'] ?? 'עבור כל מופע תראו הסברים שונים.',
+          texts['fallback.pages:perpetual-demo:explanations:5'] ?? 'לאחר שתראו את כל המופע, תעברו לשלב הבא.',
         ],
         days: [
           {
@@ -331,7 +372,7 @@ export const fallbackSurveyConfig: SurveyConfig = {
         ],
         rating: {
           scaleSize: 7,
-          prompt: texts['fallback.pages:perpetual-demo:rating:prompt'] ?? 'בשלב זה תדרגו כמה לדעתכם הייתה הוגנת...',
+          prompt: texts['fallback.pages:perpetual-demo:rating:prompt'] ?? 'בשלב זה תדרגו כמה לדעתכם הייתה הוגנת בחירת המנצחים על פני כל המופע, נסו לדרג עכשיו.',
           minLabel: texts['fallback.pages:perpetual-demo:rating:minLabel'] ?? 'לא הוגנת בכלל',
           maxLabel: texts['fallback.pages:perpetual-demo:rating:maxLabel'] ?? 'הוגנת לגמרי',
         },
@@ -342,7 +383,7 @@ export const fallbackSurveyConfig: SurveyConfig = {
       id: 'thank-you',
       props: {
         title: texts['fallback.pages:thank-you:title'] ?? 'תודה רבה!',
-        body: texts['fallback.pages:thank-you:body'] ?? 'תודה לכם על ההשתתפות...',
+        body: texts['fallback.pages:thank-you:body'] ?? 'תודה לכם על ההשתפות, התוצאות ישומשו למחקר.\nאנא לחצו על "שליחה" על מנת לסיים.',
         footnote: texts['fallback.pages:thank-you:footnote'] ?? '',
       },
     },
