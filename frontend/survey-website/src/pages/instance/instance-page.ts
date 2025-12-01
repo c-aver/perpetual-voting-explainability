@@ -318,7 +318,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     slider.min = '1';
     slider.max = ratingConfig.scaleSize.toString();
     slider.step = '1';
-    const initialValue = this.rating ?? 1;
+    const initialValue = this.rating ?? Math.ceil(ratingConfig.scaleSize / 2);
     slider.value = initialValue.toString();
     slider.addEventListener('input', (event) => this.handleSliderInput(event));
 
