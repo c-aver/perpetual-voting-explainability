@@ -10,7 +10,7 @@ introByType:llm_generated,עבור מופע זה תקבלו הסברים שיו�
 instanceRating:prompt,"אחרי שראית את כל המנצחים, כמה לדעתך הייתה התוצאה הוגנת באופן כללי?"
 instanceRating:minLabel,לא הוגנת בכלל
 instanceRating:maxLabel,הוגנת לגמרי
-fallback.pages:intro:title,ברוכים הבאים ותודה על ההשתתפות test test
+fallback.pages:intro:title,ברוכים הבאים ותודה על ההשתתפות
 fallback.pages:intro:body,"ברוכים הבאים, אתם תענו על סקר בנוגע לחוקי בחירות חוזרות.\nמילוי הסקר ייקח כ-??? דקות. השאלון אנונימי לחלוטין ומיועד למטרות מחקר."
 fallback.pages:intro:footnote,
 fallback.pages:overview:title,בחירות חוזרות
