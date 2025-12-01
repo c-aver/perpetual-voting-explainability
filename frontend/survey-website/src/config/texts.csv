@@ -1,0 +1,54 @@
+field,text
+mechanicalExplanations:approval,חוק זה בוחר בכל יום את האפשרות שלה מצביעים הכי הרבה.
+mechanicalExplanations:unit_cost,"חוק זה נותן לכל מצביע משקל, בהתחלה כל המשקלים שווים 1, אך כל מצביע שלא מסופק ביום כלשהו (כלומר המנצחת לא הייתה אחת מהבחירות שלו) מקבל העלאה של 1 במשקל. בכל יום המנצחת היא האופציה שסכום המשקלים של המצביעים שלה הכי גבוה."
+mechanicalExplanations:equal_shares,"חוק זה נותן לכל מצביע תקציב התחלתי של k שקלים (מספר הימים הכולל). על מנת ""לקנות"" אפשרות המצביעים צריכים להוציא n שקלים, המנצחת היא האפשרות שהמאשרים שלה יכולים לקנות כשכל אחד משלם כמה שפחות."
+mechanicalExplanations:phragmen,"חוק זה נותן לכל מצביע ""עומס"", בהתחלה כל העומסים שווים 0, לאחר בחירת המנצח עומס המצביעים שהצביעו לו מתחלק באופן שווה ביניהם אך עולה בסך הכל ב-1. האפשרות המנצחת בכל יום היא זו שיש לה קבוצת מצביעים שיקבלו את העומס הנמוך ביותר."
+introByType:none,עבור מופע זה אתם נדרשים לדרג את ההוגנות ללא הסבר.
+introByType:mechanical,עבור מופע זה תקבלו הסבר לגבי איך פועל החוק המוצג:
+introByType:instance_based,עבור מופע זה תקבלו הסבר לגבי איך פועל החוק המוצג וכן הסבר מפורט לגבי למה החוק בחר את המנצח:
+introByType:llm_generated,עבור מופע זה תקבלו הסברים שיוצרו על ידי AI.
+instanceRating:prompt,"אחרי שראית את כל המנצחים, כמה לדעתך הייתה התוצאה הוגנת באופן כללי?"
+instanceRating:minLabel,לא הוגנת בכלל
+instanceRating:maxLabel,הוגנת לגמרי
+fallback.pages:intro:title,ברוכים הבאים ותודה על ההשתתפות
+fallback.pages:intro:body,"ברוכים הבאים, אתם תענו על סקר בנוגע לחוקי בחירות חוזרות.\nמילוי הסקר ייקח כ-??? דקות. השאלון אנונימי לחלוטין ומיועד למטרות מחקר."
+fallback.pages:intro:footnote,
+fallback.pages:overview:title,בחירות חוזרות
+fallback.pages:overview:body,"בחירות חוזרות הן בחירות בין מצביעים אשר מתקיימות באופן חוזר, בעמוד הבא תראו דוגמה ל""מופע בחירות"", כלומר תראו במי בחר כל מצביע, ובנוסף תראו דרך אחת לבחור מנצח.\nבשאלות הבאות תראו בחירת מנצחים על ידי חוקים שונים."
+fallback.pages:overview:footnote,
+fallback.pages:feedback:prompt,נשמח למשוב בנוגע לסקר.
+fallback.pages:feedback:helperText,"פרטו מעט או הרבה ככל שתרצו, נשתמש במשוב זה על מנת לבחון את תוצאות הסקר."
+fallback.pages:feedback:placeholder,חווייתי בסקר הייתה...
+fallback.pages:demographic:title,פרטים דמוגרפיים
+fallback.pages:demographic:description,מספר שאלות עליכם לפני שנתחיל.
+fallback.pages:demographic:questions:gender:prompt,מגדר
+fallback.pages:demographic:questions:gender:placeholder,בחר אפשרות
+fallback.pages:demographic:questions:gender:option:m,גבר
+fallback.pages:demographic:questions:gender:option:f,אישה
+fallback.pages:demographic:questions:gender:option:x,אחר
+fallback.pages:demographic:questions:education:prompt,מהי רמת ההשכלה שלכם?
+fallback.pages:demographic:questions:education:placeholder,בחר אפשרות
+fallback.pages:demographic:questions:education:option:highschool,תיכונית ומטה
+fallback.pages:demographic:questions:education:option:student,סטודנט לתואר ראשון
+fallback.pages:demographic:questions:education:option:graduate,בוגר תואר ראשון
+fallback.pages:demographic:questions:education:option:postgrad,תואר שני ומעלה
+fallback.pages:demographic:questions:age:prompt,מה גילכם?
+fallback.pages:demographic:questions:age:meta:label,גיל המשתתף
+fallback.pages:perpetual-demo:title,דוגמה למעבר על מופע.
+fallback.pages:perpetual-demo:introText,"למטה ניתן לראות מופע פשוט עם שלושה מצביעים על פני שלושה ימים, התקדמו בימים ובסוף הביעו את דעתכם על ההוגנות.\nבשאלות הבאות ייתכן ויופיעו הסברים למה החוק בחר את המנצח שבחר."
+fallback.pages:perpetual-demo:voters:1:label,מצביע 1
+fallback.pages:perpetual-demo:voters:2:label,מצביע 2
+fallback.pages:perpetual-demo:voters:3:label,מצביע 3
+fallback.pages:perpetual-demo:explanations:0,כאן לפעמים יהיה הסבר מדוע נבחר א' בתור המנצח ביום הראשון.
+fallback.pages:perpetual-demo:explanations:1,עבור כל מופע תראו הסברים שונים.
+fallback.pages:perpetual-demo:explanations:2,"לאחר שתראו את כל המופע, תעברו לשלב הבא."
+fallback.pages:perpetual-demo:explanations:3,כאן לפעמים יהיה הסבר מדוע נבחר א' בתור המנצח ביום הראשון.
+fallback.pages:perpetual-demo:explanations:4,עבור כל מופע תראו הסברים שונים.
+fallback.pages:perpetual-demo:explanations:5,"לאחר שתראו את כל המופע, תעברו לשלב הבא."
+fallback.pages:perpetual-demo:rating:prompt,"בשלב זה תדרגו כמה לדעתכם הייתה הוגנת בחירת המנצחים על פני כל המופע, נסו לדרג עכשיו."
+fallback.pages:perpetual-demo:rating:minLabel,לא הוגנת בכלל
+fallback.pages:perpetual-demo:rating:maxLabel,הוגנת לגמרי
+fallback.pages:thank-you:title,תודה רבה!
+fallback.pages:thank-you:body,"תודה לכם על ההשתפות, התוצאות ישומשו למחקר.\nאנא לחצו על ""שליחה"" על מנת לסיים."
+fallback.pages:thank-you:footnote,
+fallback.pages:instance:title,דוגמה למעבר על מופע.
