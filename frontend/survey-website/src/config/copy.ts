@@ -60,7 +60,9 @@ const enUS: LocalizationBundle = {
     noPages: 'No survey pages are configured.',
   },
   instancePage: {
-    revealNextDay: (day) => `Show day ${day}`,
+    revealDayVotes: (day) => `Show votes for day ${day}`,
+    revealDayWinner: (day) => `Show winner for day ${day}`,
+    pendingWinnerLabel: '',
     ratingPrompt: 'How fair do you find these results?',
     sliderMinLabel: 'Unfair',
     sliderMaxLabel: 'Very fair',
@@ -128,7 +130,9 @@ const heIL: LocalizationBundle = {
     noPages: 'אין עמודי סקר זמינים.',
   },
   instancePage: {
-    revealNextDay: (day) => `הצג את יום ${day}`,
+    revealDayVotes: (day) => `הצג את ההצבעות ליום ${day}`,
+    revealDayWinner: (day) => `הצג את המנצח של יום ${day}`,
+    pendingWinnerLabel: '',
     ratingPrompt: 'עד כמה התוצאות הללו הוגנות?',
     sliderMinLabel: 'לא הוגן',
     sliderMaxLabel: 'הוגן מאוד',

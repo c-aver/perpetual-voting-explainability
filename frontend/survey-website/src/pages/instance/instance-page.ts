@@ -8,10 +8,13 @@ import type {
 } from '../../config/types.ts';
 
 export interface InstancePageResult {
-  revealedDays: number;
+  revealedVotes: number;
+  revealedWinners: number;
   totalDays: number;
   rating?: number;
   maxRating: number;
+  revealedDays?: number;
+  expandedExplanationDay?: number | null;
 }
 
 const DEFAULT_SLIDER_LENGTH = 5;
@@ -20,7 +23,8 @@ const DEFAULT_SLIDER_LENGTH = 5;
  * Presents a perpetual voting instance round-by-round and captures a fairness rating.
  */
 export class InstancePage extends BasePage<InstancePageResult, InstancePagePropsConfig> {
-  private revealedDays = 0;
+  private revealedVoteDays = 0;
+  private revealedWinnerDays = 0;
   private rating?: number;
   private tableContainer?: HTMLDivElement;
   private winnersContainer?: HTMLDivElement;
@@ -29,15 +33,40 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
   private ratingValueLabel?: HTMLSpanElement;
   private highlightedDay?: number;
   private pendingScrollDay?: number;
+  private expandedExplanationDay?: number | null;
   private readonly revealHandler = () => this.handleRevealNextDay();
+  private readonly explanationToggleHandler = (event: Event) => this.handleExplanationToggle(event);
 
   onEnter(data?: InstancePageResult): void {
     super.onEnter(data);
     const totalDays = this.getTotalDays();
-    this.revealedDays = Math.min(Math.max(data?.revealedDays ?? 0, 0), totalDays);
+    const savedVotes = typeof data?.revealedVotes === 'number'
+      ? data.revealedVotes
+      : data?.revealedDays;
+    const savedWinners = typeof data?.revealedWinners === 'number'
+      ? data.revealedWinners
+      : data?.revealedDays;
+
+    this.revealedVoteDays = this.normalizeDayCount(savedVotes, totalDays);
+    this.revealedWinnerDays = this.normalizeDayCount(savedWinners, this.revealedVoteDays);
     this.rating = data?.rating;
     this.highlightedDay = undefined;
     this.pendingScrollDay = undefined;
+
+    const savedExpandedRaw = data?.expandedExplanationDay;
+    const normalizedExpanded = this.normalizeDayCount(
+      typeof savedExpandedRaw === 'number' ? savedExpandedRaw : undefined,
+      this.revealedWinnerDays,
+    );
+    if (normalizedExpanded > 0) {
+      this.expandedExplanationDay = normalizedExpanded;
+    } else if (savedExpandedRaw === null) {
+      this.expandedExplanationDay = null;
+    } else if (this.revealedWinnerDays > 0) {
+      this.expandedExplanationDay = this.revealedWinnerDays;
+    } else {
+      this.expandedExplanationDay = undefined;
+    }
   }
 
   render(): void {
@@ -65,6 +94,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
 
     this.winnersContainer = document.createElement('div');
     this.winnersContainer.className = 'instance-page__explanations';
+    this.winnersContainer.addEventListener('click', this.explanationToggleHandler);
     wrapper.appendChild(this.winnersContainer);
 
     const controls = document.createElement('div');
@@ -88,6 +118,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
   }
 
   destroy(): void {
+    this.winnersContainer?.removeEventListener('click', this.explanationToggleHandler);
     this.revealButton?.removeEventListener('click', this.revealHandler);
     super.destroy();
   }
@@ -96,7 +127,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     const totalDays = this.getTotalDays();
     const validationCopy = this.copy.validation.instance;
 
-    if (this.revealedDays < totalDays) {
+    if (this.revealedWinnerDays < totalDays) {
       return {
         valid: false,
         message: validationCopy.revealAllRounds,
@@ -154,7 +185,8 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     voterHeader.classList.add('instance-page__cell--frozen');
     headerRow.appendChild(voterHeader);
 
-    for (let day = 1; day <= this.revealedDays; day += 1) {
+    const visibleDayCount = this.revealedVoteDays;
+    for (let day = 1; day <= visibleDayCount; day += 1) {
       const dayHeader = document.createElement('th');
       dayHeader.textContent = copy.dayHeader(day);
       dayHeader.dataset.day = day.toString();
@@ -177,7 +209,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
       labelCell.classList.add('instance-page__cell--frozen');
       row.appendChild(labelCell);
 
-      for (let day = 1; day <= this.revealedDays; day += 1) {
+      for (let day = 1; day <= visibleDayCount; day += 1) {
         const dayCell = document.createElement('td');
         dayCell.textContent = this.getBallotDisplay(voter.id, day);
         dayCell.dataset.day = day.toString();
@@ -192,7 +224,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
 
     table.appendChild(tbody);
 
-    if (this.revealedDays > 0) {
+    if (visibleDayCount > 0) {
       const tfoot = document.createElement('tfoot');
       const winnerRow = document.createElement('tr');
       winnerRow.className = 'instance-page__winner-row';
@@ -202,9 +234,11 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
       labelCell.classList.add('instance-page__cell--frozen');
       winnerRow.appendChild(labelCell);
 
-      for (let day = 1; day <= this.revealedDays; day += 1) {
+      for (let day = 1; day <= visibleDayCount; day += 1) {
         const valueCell = document.createElement('td');
-        valueCell.textContent = this.getWinnerDisplay(day);
+        valueCell.textContent = day <= this.revealedWinnerDays
+          ? this.getWinnerDisplay(day)
+          : this.copy.instancePage.pendingWinnerLabel;
         valueCell.dataset.day = day.toString();
         if (day === this.highlightedDay) {
           valueCell.classList.add('instance-page__cell--highlight');
@@ -234,8 +268,24 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
 
     const props = this.getProps();
     const explanations = props.explanations ?? [];
+    if (this.revealedWinnerDays === 0 || !props.showResultsExplanation) {
+      this.winnersContainer.hidden = true;
+      this.winnersContainer.replaceChildren();
+      return;
+    }
+
+    const normalizedExpanded = this.normalizeDayCount(
+      typeof this.expandedExplanationDay === 'number' ? this.expandedExplanationDay : undefined,
+      this.revealedWinnerDays,
+    );
+    if (normalizedExpanded > 0) {
+      this.expandedExplanationDay = normalizedExpanded;
+    } else if (this.expandedExplanationDay !== null) {
+      this.expandedExplanationDay = this.revealedWinnerDays;
+    }
+
     const explainedDays = props.days
-      .slice(0, this.revealedDays)
+      .slice(0, this.revealedWinnerDays)
       .map((day, index) => ({ dayNumber: day.day, text: explanations[index] }))
       .filter((entry) => Boolean(entry.text));
 
@@ -250,21 +300,37 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     list.className = 'instance-page__explanation-list';
 
     explainedDays.forEach((entry) => {
+      const day = entry.dayNumber;
+      const isExpanded = day === this.expandedExplanationDay;
       const item = document.createElement('li');
-      const heading = document.createElement('p');
-      heading.className = 'instance-page__explanation-heading';
-      heading.textContent = this.copy.instancePage.dayHeader(entry.dayNumber);
-      item.appendChild(heading);
+      item.className = 'instance-page__explanation-item';
+      item.dataset.day = day.toString();
 
-      const explanation = document.createElement('p');
-      explanation.className = 'instance-page__winner-explanation';
-      this.appendTextWithLineBreaks(explanation, entry.text ?? '');
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'instance-page__explanation-toggle';
+      toggle.dataset.day = day.toString();
+      toggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+
+      const heading = document.createElement('span');
+      heading.className = 'instance-page__explanation-heading';
+      heading.textContent = this.copy.instancePage.dayHeader(day);
+      toggle.appendChild(heading);
+      item.appendChild(toggle);
+
+      const explanation = document.createElement('div');
+      explanation.className = 'instance-page__explanation-body';
+      explanation.hidden = !isExpanded;
+      const explanationText = document.createElement('p');
+      explanationText.className = 'instance-page__winner-explanation';
+      this.appendTextWithLineBreaks(explanationText, entry.text ?? '');
+      explanation.appendChild(explanationText);
       item.appendChild(explanation);
 
       list.appendChild(item);
     });
 
-    if (props.showResultsExplanation) this.winnersContainer.replaceChildren(list);
+    this.winnersContainer.replaceChildren(list);
   }
 
   private updateRevealButton(): void {
@@ -273,14 +339,18 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     }
 
     const totalDays = this.getTotalDays();
-    if (this.revealedDays >= totalDays) {
+    if (this.revealedWinnerDays >= totalDays && this.revealedVoteDays >= totalDays) {
       this.revealButton.hidden = true;
       return;
     }
 
     this.revealButton.hidden = false;
     this.revealButton.disabled = false;
-    this.revealButton.textContent = this.copy.instancePage.revealNextDay(this.revealedDays + 1);
+    if (this.revealedVoteDays === this.revealedWinnerDays) {
+      this.revealButton.textContent = this.copy.instancePage.revealDayVotes(this.revealedVoteDays + 1);
+    } else {
+      this.revealButton.textContent = this.copy.instancePage.revealDayWinner(this.revealedWinnerDays + 1);
+    }
   }
 
   private renderRatingSection(): void {
@@ -291,7 +361,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     const totalDays = this.getTotalDays();
     const props = this.getProps();
 
-    if (this.revealedDays < totalDays) {
+    if (this.revealedWinnerDays < totalDays) {
       this.ratingContainer.hidden = true;
       return;
     }
@@ -303,7 +373,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
 
     const prompt = document.createElement('p');
     prompt.className = 'instance-page__rating-prompt';
-    prompt.textContent = ratingConfig.prompt;
+    this.appendTextWithLineBreaks(prompt, ratingConfig.prompt);
     this.ratingContainer.appendChild(prompt);
 
     const sliderWrapper = document.createElement('div');
@@ -340,13 +410,21 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
 
   private handleRevealNextDay(): void {
     const totalDays = this.getTotalDays();
-    if (this.revealedDays >= totalDays) {
-      return;
+
+    if (this.revealedVoteDays === this.revealedWinnerDays) {
+      if (this.revealedVoteDays >= totalDays) {
+        return;
+      }
+      this.revealedVoteDays += 1;
+      this.highlightedDay = this.revealedVoteDays;
+      this.pendingScrollDay = this.revealedVoteDays;
+    } else {
+      this.revealedWinnerDays = Math.min(this.revealedVoteDays, this.revealedWinnerDays + 1);
+      this.highlightedDay = this.revealedWinnerDays;
+      this.pendingScrollDay = this.revealedWinnerDays;
+      this.expandedExplanationDay = this.revealedWinnerDays;
     }
 
-    this.revealedDays += 1;
-    this.highlightedDay = this.revealedDays;
-    this.pendingScrollDay = this.revealedDays;
     this.persistState();
     this.refreshUi();
   }
@@ -363,7 +441,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
 
   private syncNextButtonState(): void {
     const totalDays = this.getTotalDays();
-    const canContinue = this.revealedDays >= totalDays && this.rating !== undefined;
+    const canContinue = this.revealedWinnerDays >= totalDays && this.rating !== undefined;
     this.flow.setNextEnabled(canContinue);
   }
 
@@ -407,11 +485,15 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
 
   private buildResult(): InstancePageResult {
     const ratingConfig = this.normalizeRatingConfig(this.getProps().rating);
+    const totalDays = this.getTotalDays();
     return {
-      revealedDays: this.revealedDays,
-      totalDays: this.getTotalDays(),
+      revealedVotes: this.revealedVoteDays,
+      revealedWinners: this.revealedWinnerDays,
+      revealedDays: this.revealedWinnerDays,
+      totalDays,
       rating: this.rating,
       maxRating: ratingConfig.scaleSize,
+      expandedExplanationDay: this.expandedExplanationDay ?? null,
     };
   }
 
@@ -425,7 +507,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
       if (index > 0) {
         element.appendChild(document.createElement('br'));
       }
-      element.appendChild(document.createTextNode(segment));
+      this.appendFormattedText(element, segment);
     });
   }
 
@@ -438,5 +520,69 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     const direction = getComputedStyle(container).direction;
     const inline = direction === 'rtl' ? 'start' : 'end';
     targetCell.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline });
+  }
+
+  private appendFormattedText(target: HTMLElement, content: string): void {
+    if (!content) {
+      target.appendChild(document.createTextNode(''));
+      return;
+    }
+
+    const boldPattern = /\*(.+?)\*/g;
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    let foundBold = false;
+
+    while ((match = boldPattern.exec(content)) !== null) {
+      foundBold = true;
+      if (match.index > lastIndex) {
+        target.appendChild(document.createTextNode(content.slice(lastIndex, match.index)));
+      }
+
+      const strong = document.createElement('strong');
+      strong.textContent = match[1];
+      target.appendChild(strong);
+      lastIndex = match.index + match[0].length;
+    }
+
+    if (!foundBold) {
+      target.appendChild(document.createTextNode(content));
+      return;
+    }
+
+    if (lastIndex < content.length) {
+      target.appendChild(document.createTextNode(content.slice(lastIndex)));
+    }
+  }
+
+  private handleExplanationToggle(event: Event): void {
+    const target = (event.target as HTMLElement | null)?.closest('button.instance-page__explanation-toggle');
+    if (!target) {
+      return;
+    }
+    const day = Number.parseInt(target.getAttribute('data-day') ?? '', 10);
+    if (!Number.isFinite(day) || day <= 0 || day > this.revealedWinnerDays) {
+      return;
+    }
+    if (this.expandedExplanationDay === day) {
+      this.expandedExplanationDay = null;
+    } else {
+      this.expandedExplanationDay = day;
+    }
+    this.persistState();
+    this.renderWinners();
+  }
+
+  private normalizeDayCount(value: number | undefined | null, max: number): number {
+    if (typeof value !== 'number' || Number.isNaN(value)) {
+      return 0;
+    }
+    if (value <= 0) {
+      return 0;
+    }
+    if (value >= max) {
+      return max;
+    }
+    return Math.floor(value);
   }
 }

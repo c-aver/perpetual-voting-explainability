@@ -86,7 +86,9 @@ export interface LocalizationBundle {
     noPages: string;
   };
   instancePage: {
-    revealNextDay(day: number): string;
+    revealDayVotes(day: number): string;
+    revealDayWinner(day: number): string;
+    pendingWinnerLabel: string;
     ratingPrompt: string;
     sliderMinLabel: string;
     sliderMaxLabel: string;
