@@ -8,7 +8,7 @@ import {
 } from './instance-data.ts';
 import textsCsv from './texts.csv?raw';
 
-const TEXTS_CSV_URL = import.meta.env.VITE_TEXTS_CSV_URL ?? '';
+const TEXTS_CSV_URL = import.meta.env.VITE_TEXTS_CSV_URL;
 
 function normalizeCsvUrl(url: string): string {
   if (!url || !url.includes('docs.google.com/spreadsheets')) {
@@ -76,6 +76,7 @@ function buildTextLookup(source: string): Record<string, string> {
 
 async function loadTextsCsv(): Promise<string> {
   if (!TEXTS_CSV_URL) {
+    console.log("No CSV URL, loading from local...");
     return textsCsv;
   }
   if (typeof fetch !== 'function') {
@@ -180,7 +181,7 @@ function createInstancePages(): SurveyPageConfig[] {
           id: `instance-${instanceId}-${ruleId}-${explanationId}`,
           props: {
             title: texts['fallback.pages:instance:title'] ?? 'דוגמה למעבר על מופע.',
-            introText: introByType[explanationId] + "\n" + (ruleExplanationByType[explanationId]?.[ruleId] ?? ""),
+            introText: introByType[explanationId] + (ruleExplanationByType[explanationId]?.[ruleId] ?? ""),
             showResultsExplanation: shouldShowResultsExplanation(explanationId, explanations),
             voters: instanceVoters[instanceId] ?? [],
             explanations,

@@ -418,6 +418,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
       this.revealedVoteDays += 1;
       this.highlightedDay = this.revealedVoteDays;
       this.pendingScrollDay = this.revealedVoteDays;
+      this.expandedExplanationDay = null; // collapse any open explanations when showing more votes
     } else {
       this.revealedWinnerDays = Math.min(this.revealedVoteDays, this.revealedWinnerDays + 1);
       this.highlightedDay = this.revealedWinnerDays;
