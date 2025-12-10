@@ -4,25 +4,13 @@
 export type TextDirection = 'ltr' | 'rtl';
 
 /**
- * Metadata describing which template variant produced a page's rendered props.
- */
-export interface PageParameterMeta {
-  templateKey: string;
-  parameters?: Record<string, unknown>;
-  signature: string;
-}
-
-/**
- * Normalized descriptor for a survey page, optionally enriched with template metadata.
+ * Normalized descriptor for a survey page used by the paginator runtime.
  */
 export interface PageDescriptor<TProps = unknown> {
   type: string;
   id?: string;
   props?: TProps;
   skippable?: boolean;
-  paramKey?: string;
-  parameters?: Record<string, unknown>;
-  parameterMeta?: PageParameterMeta;
 }
 
 /**
@@ -126,13 +114,12 @@ export interface PageValidationResult<TData = unknown> {
 }
 
 /**
- * Payload emitted when the paginator completes, capturing descriptors, data, timing, and parameters.
+ * Payload emitted when the paginator completes, capturing descriptors, data, and timing metrics.
  */
 export interface PaginationCompletePayload {
   descriptors: PageDescriptor[];
   dataById: Record<string, unknown>;
   pageDurationsMs: Record<string, number>;
-  pageParameters: Record<string, PageParameterMeta>;
 }
 
 /**

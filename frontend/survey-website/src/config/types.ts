@@ -69,9 +69,9 @@ export interface InstancePagePropsConfig {
 }
 
 /**
- * Page definition as provided by configuration files before template resolution.
+ * Page definition as provided by configuration files before runtime normalization.
  */
-export type SurveyPageConfig = Omit<PageDescriptor, 'props' | 'parameterMeta'> & {
+export type SurveyPageConfig = Omit<PageDescriptor, 'props'> & {
   props?: Record<string, unknown>;
 };
 

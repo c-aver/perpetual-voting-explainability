@@ -79,7 +79,6 @@ async function bootstrap(): Promise<void> {
 			const submission = {
 				responses: payload.dataById,
 				pageDurationsMs: payload.pageDurationsMs,
-				pageParameters: payload.pageParameters,
 				locale: config.copy.locale,
 				language: config.settings.language,
 				meta: config.meta,

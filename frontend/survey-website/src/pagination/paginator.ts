@@ -6,7 +6,6 @@ import type {
   FlowState,
   LocalizationBundle,
   PageDescriptor,
-  PageParameterMeta,
   PageFactoryContext,
   PageValidationResult,
   PaginationCompletePayload,
@@ -335,7 +334,6 @@ export class Paginator {
       descriptors: [...this.descriptors],
       dataById: this.buildDataSnapshot(),
       pageDurationsMs: this.buildDurationSnapshot(),
-      pageParameters: this.buildParameterSnapshot(),
     };
 
     this.options.onComplete?.(payload);
@@ -377,30 +375,6 @@ export class Paginator {
   }
 
   /**
-   * Captures resolved template metadata for pages that used parameterized templates.
-   */
-  private buildParameterSnapshot(): Record<string, PageParameterMeta> {
-    const snapshot: Record<string, PageParameterMeta> = {};
-
-    this.descriptors.forEach((descriptor, index) => {
-      if (!descriptor.paramKey || !descriptor.parameterMeta) {
-        return;
-      }
-
-      const key = this.keyFor(descriptor, index);
-      const parameters = this.cloneParameters(descriptor.parameterMeta.parameters);
-
-      snapshot[key] = {
-        templateKey: descriptor.parameterMeta.templateKey,
-        signature: descriptor.parameterMeta.signature,
-        parameters,
-      };
-    });
-
-    return snapshot;
-  }
-
-  /**
    * Begins timing for the active page using the provided persistence key.
    */
   private beginTimingFor(key: string): void {
@@ -431,28 +405,12 @@ export class Paginator {
     return descriptor.id ?? `${descriptor.type}-${index}`;
   }
 
-  private computeOrderKey(descriptor: PageDescriptor): string | undefined {
-    if (descriptor.id) {
-      return descriptor.id;
-    }
-
-    if (descriptor.parameterMeta?.signature) {
-      return descriptor.parameterMeta.signature;
-    }
-
-    if (descriptor.paramKey) {
-      return `${descriptor.paramKey}`;
-    }
-
-    return undefined;
-  }
-
   private collectPageOrder(): string[] | undefined {
-    const keys = this.descriptors
-      .map((descriptor) => this.computeOrderKey(descriptor))
-      .filter((key): key is string => Boolean(key));
+    const ids = this.descriptors
+      .map((descriptor) => descriptor.id)
+      .filter((id): id is string => typeof id === 'string' && id.length > 0);
 
-    return keys.length > 0 ? keys : undefined;
+    return ids.length > 0 ? ids : undefined;
   }
 
   private applyStoredPageOrder(orderKeys: string[]): void {
@@ -460,12 +418,9 @@ export class Paginator {
     const unkeyedDescriptors: PageDescriptor[] = [];
 
     this.descriptors.forEach((descriptor) => {
-      const key = this.computeOrderKey(descriptor);
-      if (key) {
-        if (!keyedDescriptors.has(key)) {
-          keyedDescriptors.set(key, descriptor);
-        }
-      } else {
+      if (descriptor.id && !keyedDescriptors.has(descriptor.id)) {
+        keyedDescriptors.set(descriptor.id, descriptor);
+      } else if (!descriptor.id) {
         unkeyedDescriptors.push(descriptor);
       }
     });
@@ -683,24 +638,6 @@ export class Paginator {
     }
   }
 
-  /**
-   * Clones template parameter metadata before including it in the completion payload.
-   */
-  private cloneParameters(source?: Record<string, unknown>): Record<string, unknown> | undefined {
-    if (!source) {
-      return undefined;
-    }
-
-    try {
-      return JSON.parse(JSON.stringify(source));
-    } catch {
-      const copy: Record<string, unknown> = {};
-      Object.keys(source).forEach((key) => {
-        copy[key] = source[key];
-      });
-      return copy;
-    }
-  }
 }
 
 /**

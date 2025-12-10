@@ -25,8 +25,8 @@ graph TD
 1. `Paginator` receives normalized descriptors and a registry mapping page types to factories.
 2. Upon `start()`, the paginator renders the first page through its factory.
 3. Navigation events from the shell trigger `handleNext`, `handleBack`, or `handleJump`, each coordinating validation and state transitions.
-4. On completion, the paginator emits a payload with all collected data.
 
+}
 ## Flow Controls API
 
 Pages interact with the flow through a `FlowControls` object containing:
@@ -69,11 +69,7 @@ interface PaginationCompletePayload {
   descriptors: PageDescriptor[];           // Snapshot of the flow configuration
   dataById: Record<string, unknown>;       // User-submitted data keyed by descriptor ID
   pageDurationsMs: Record<string, number>; // Time spent on each page (ms)
-  pageParameters: Record<string, PageParameterMeta>; // Template metadata when applicable
 }
-```
-
-`pageParameters` only contains entries for descriptors that specified a `paramKey` and successfully resolved a template.
 
 ## Extensibility Guidelines
 

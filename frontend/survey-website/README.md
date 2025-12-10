@@ -9,13 +9,12 @@ This document provides a complete overview of the frontend implementation for th
 3. [Configuration System](#configuration-system)
 4. [Pagination Framework](#pagination-framework)
 5. [Page Implementations](#page-implementations)
-6. [Templating & Parameterization](#templating--parameterization)
-7. [State Persistence](#state-persistence)
-8. [API Integration](#api-integration)
-9. [Styling Conventions](#styling-conventions)
-10. [Testing Strategy](#testing-strategy)
-11. [Environment Variables](#environment-variables)
-12. [Development Tasks](#development-tasks)
+6. [State Persistence](#state-persistence)
+7. [API Integration](#api-integration)
+8. [Styling Conventions](#styling-conventions)
+9. [Testing Strategy](#testing-strategy)
+10. [Environment Variables](#environment-variables)
+11. [Development Tasks](#development-tasks)
 
 ## Architecture Overview
 
@@ -23,7 +22,7 @@ The frontend is a TypeScript single-page application built with Vite. It renders
 
 The codebase is organized into the following top-level concerns:
 
-- `src/config` — loads and normalizes survey configuration, including fallback defaults and template resolution.
+- `src/config` — loads and normalizes survey configuration, including fallback defaults.
 - `src/pagination` — implements the survey paginator, user controls, and flow orchestration.
 - `src/pages` — contains individual page components (text, text input, questionnaire) that render content and validate user responses.
 - `src/pagination/survey-shell.ts` — UI shell that hosts the current page, navigation buttons, and progress display.
@@ -50,7 +49,6 @@ Configuration files describe survey pages, settings, and remote assets.
 
 - `loadSurveyConfig` accepts optional overrides for config URL and language. It fetches JSON, merges with fallback defaults, resolves backend-provided page order, and normalizes descriptors.
 - Supported settings include progress visibility, text direction, local storage keys, autosave management, and language.
-- Configuration supports parameterized page descriptors via the `paramKey` and `parameters` fields.
 - Questionnaire pages embed questions inline; only the ordering comes from the backend.
 - Page ordering is dynamically overridden via backend-provided `pageIds` lists served from `/get-questions`.
 
@@ -72,7 +70,6 @@ On completion, the paginator emits a `PaginationCompletePayload` containing:
 - A snapshot of the descriptors used during the session.
 - User-provided data indexed by page ID.
 - Page duration measurements in milliseconds.
-- Resolved parameter metadata for pages that used templates.
 
 ## Page Implementations
 
@@ -91,17 +88,6 @@ Page modules:
 
 Shared interactions, such as enabling the next button only after validation prerequisites are met, are implemented in page-specific logic but conform to the flow API.
 
-## Templating & Parameterization
-
-The template registry (`src/config/page-templates.ts`) enables reusable text page variants with parameter placeholders.
-
-- Templates are registered per page type (currently for the `text` type).
-- Each template exposes a `resolve(parameters)` callback that returns props and parameter metadata.
-- The loader enforces that descriptors use either explicit props or a template (`paramKey`) but not both.
-- Parameter metadata (template key, signature, and resolved inputs) is propagated to the paginator so submissions can include the exact copy variant shown to the user.
-
-Adding new templates simply requires registering another resolver.
-
 ## State Persistence
 
 Two persistence mechanisms coexist:
@@ -116,7 +102,7 @@ Persistence prioritizes user experience (resume capability) while avoiding data 
 Backend contact points are limited and centrally defined in `src/config/api-endpoints.ts`:
 
 1. During configuration load, `pageSequenceSource` points to `/get-questions`, allowing the backend to dictate page ordering for experiments.
-2. When `onComplete` fires, `main.ts` builds a submission payload with responses, durations, and resolved parameters.
+2. When `onComplete` fires, `main.ts` builds a submission payload with responses and durations.
 3. `resolveSubmitEndpoint` computes the submission URL using Vite environment variables (falling back to `http://localhost:8080/submit-response`).
 4. `fetch` is used to POST the submission. Failures display an error message and log details for troubleshooting.
 
@@ -161,7 +147,7 @@ Only set the host/port variables when deploying to environments where the fronte
 
 ### Recommended Workflow
 
-1. Update configuration and templates first to define content structure.
+1. Update configuration first to define content structure.
 2. Extend or create page components as needed.
 3. Wire new pages into the paginator registry in `main.ts`.
 4. Verify rendering and validation manually, then add or update unit tests.

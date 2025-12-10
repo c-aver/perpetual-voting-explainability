@@ -10,7 +10,6 @@ import type {
   TextDirection,
 } from './types.ts';
 import type { PageDescriptor } from '../pagination/types.ts';
-import { resolvePageTemplate } from './page-templates.ts';
 
 const DEFAULT_RTL_LOCALES = ['ar', 'fa', 'he', 'ur'];
 const ORDERING_PREFIX_PAGE_IDS = ['intro', 'demographic', 'perpetual-demo', 'overview'];
@@ -64,8 +63,7 @@ export async function loadSurveyConfig(
 }
 
 /**
- * Clones and normalizes page descriptors, applying template resolution and questionnaire
- * question loading when necessary.
+ * Clones and normalizes page descriptors, applying questionnaire-specific defaults as needed.
  */
 async function resolvePageConfigs(
   pages: SurveyPageConfig[],
@@ -79,30 +77,6 @@ async function resolvePageConfigs(
       ...descriptor,
       props,
     };
-
-    if (descriptor.paramKey) {
-      if (props && Object.keys(props).length > 0) {
-        throw new Error(
-          `Page "${descriptor.id ?? descriptor.type}" cannot specify both "props" and "paramKey".`,
-        );
-      }
-
-      const templateResult = resolvePageTemplate(descriptor.type, descriptor.paramKey, descriptor.parameters);
-      if (!templateResult) {
-        throw new Error(
-          `Unknown template key "${descriptor.paramKey}" for page type "${descriptor.type}".`,
-        );
-      }
-
-      copy.props = templateResult.props as Record<string, unknown>;
-      copy.parameterMeta = templateResult.meta;
-      copy.parameters = templateResult.meta.parameters;
-    } else if (descriptor.parameters) {
-      console.warn(
-        `Page "${descriptor.id ?? descriptor.type}" provided parameters without paramKey; ignoring parameters.`,
-      );
-      copy.parameters = undefined;
-    }
 
     if (descriptor.type === 'questionnaire') {
       const questionnaireProps = props as QuestionnairePropsConfig | undefined;

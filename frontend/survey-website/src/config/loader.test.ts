@@ -222,18 +222,6 @@ describe('loadSurveyConfig', () => {
     expect(ids).toEqual(storedOrder);
   });
 
-  it('throws when both props and paramKey are provided for a descriptor', async () => {
-    fallbackSurveyConfig.pages = [
-      {
-        type: 'text',
-        id: 'conflict',
-        paramKey: 'welcome',
-        props: { title: 'invalid' },
-      },
-    ];
-
-    await expect(loadSurveyConfig()).rejects.toThrow(/cannot specify both "props" and "paramKey"/i);
-  });
 });
 
 function createDefaultOrderingFetch(orderingEndpoint: string): typeof fetch {
