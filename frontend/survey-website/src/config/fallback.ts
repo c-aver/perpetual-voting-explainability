@@ -122,24 +122,24 @@ const explanationIds = [
 ]
 
 const mechanicalExplanations: Record<string, string> = {
-  'approval': texts['mechanicalExplanations:approval'] ?? 'חוק זה בוחר בכל יום את האפשרות שלה מצביעים הכי הרבה.',
-  'unit_cost': texts['mechanicalExplanations:unit_cost'] ?? 'חוק זה נותן לכל מצביע משקל, בהתחלה כל המשקלים שווים 1, אך כל מצביע שלא מסופק ביום כלשהו (כלומר המנצחת לא הייתה אחת מהבחירות שלו) מקבל העלאה של 1 במשקל. בכל יום המנצחת היא האופציה שסכום המשקלים של המצביעים שלה הכי גבוה.',
-  'equal_shares': texts['mechanicalExplanations:equal_shares'] ?? 'חוק זה נותן לכל מצביע תקציב התחלתי של k שקלים (מספר הימים הכולל). על מנת "לקנות" אפשרות המצביעים צריכים להוציא n שקלים, המנצחת היא האפשרות שהמאשרים שלה יכולים לקנות כשכל אחד משלם כמה שפחות.',
-  'phragmen': texts['mechanicalExplanations:phragmen'] ?? 'חוק זה נותן לכל מצביע "עומס", בהתחלה כל העומסים שווים 0, לאחר בחירת המנצח עומס המצביעים שהצביעו לו מתחלק באופן שווה ביניהם אך עולה בסך הכל ב-1. האפשרות המנצחת בכל יום היא זו שיש לה קבוצת מצביעים שיקבלו את העומס הנמוך ביותר.',
+  'approval': texts['mechanicalExplanations:approval'],
+  'unit_cost': texts['mechanicalExplanations:unit_cost'],
+  'equal_shares': texts['mechanicalExplanations:equal_shares'],
+  'phragmen': texts['mechanicalExplanations:phragmen'],
 };
 
 
 const introByType: Record<string, string> = {
-  'none': texts['introByType:none'] ?? 'עבור מופע זה אתם נדרשים לדרג את ההוגנות ללא הסבר.',
-  'mechanical': texts['introByType:mechanical'] ?? 'עבור מופע זה תקבלו הסבר לגבי איך פועל החוק המוצג:',
-  'instance_based': texts['introByType:instance_based'] ?? 'עבור מופע זה תקבלו הסבר לגבי איך פועל החוק המוצג וכן הסבר מפורט לגבי למה החוק בחר את המנצח:',
-  'llm_generated': texts['introByType:llm_generated'] ?? 'עבור מופע זה תקבלו הסברים שיוצרו על ידי AI.',
+  'approval': texts['introByType:approval'],
+  'unit_cost': texts['introByType:unit_cost'],
+  'equal_shares': texts['introByType:equal_shares'],
+  'phragmen': texts['introByType:phragmen'],
 }
 
 const instanceRatingCopy = {
-  prompt: texts['instanceRating:prompt'] ?? 'אחרי שראית את כל המנצחים, כמה לדעתך הייתה התוצאה הוגנת באופן כללי?',
-  minLabel: texts['instanceRating:minLabel'] ?? 'לא הוגנת בכלל',
-  maxLabel: texts['instanceRating:maxLabel'] ?? 'הוגנת לגמרי',
+  prompt: texts['instanceRating:prompt'],
+  minLabel: texts['instanceRating:minLabel'],
+  maxLabel: texts['instanceRating:maxLabel'],
 };
 
 const ruleExplanationByType: Record<string, Record<string, string> | undefined> = {
@@ -180,8 +180,8 @@ function createInstancePages(): SurveyPageConfig[] {
           type: 'instance',
           id: `instance-${instanceId}-${ruleId}-${explanationId}`,
           props: {
-            title: texts['fallback.pages:instance:title'] ?? 'דוגמה למעבר על מופע.',
-            introText: introByType[explanationId] + (ruleExplanationByType[explanationId]?.[ruleId] ?? ""),
+            title: texts['fallback.pages:instance:title'],
+            introText: introByType[ruleId] + (ruleExplanationByType[explanationId] ? '\n' : '') + (ruleExplanationByType[explanationId]?.[ruleId] ?? ""),
             showResultsExplanation: shouldShowResultsExplanation(explanationId, explanations),
             voters: instanceVoters[instanceId] ?? [],
             explanations,
@@ -219,27 +219,27 @@ export const fallbackSurveyConfig: SurveyConfig = {
       type: 'text',
       id: 'intro',
       props: {
-        title: texts['fallback.pages:intro:title'] ?? 'ברוכים הבאים ותודה על ההשתתפות',
-        body: texts['fallback.pages:intro:body'] ?? 'ברוכים הבאים, אתם תענו על סקר בנוגע לחוקי בחירות חוזרות.\nמילוי הסקר ייקח כ-??? דקות. השאלון אנונימי לחלוטין ומיועד למטרות מחקר.',
-        footnote: texts['fallback.pages:intro:footnote'] ?? '',
+        title: texts['fallback.pages:intro:title'],
+        body: texts['fallback.pages:intro:body'],
+        footnote: texts['fallback.pages:intro:footnote'],
       },
     },
     {
       type: 'text',
       id: 'overview',
       props: {
-        title: texts['fallback.pages:overview:title'] ?? 'בחירות חוזרות',
-        body: texts['fallback.pages:overview:body'] ?? 'בחירות חוזרות הן בחירות בין מצביעים אשר מתקיימות באופן חוזר, בעמוד הבא תראו דוגמה ל"מופע בחירות", כלומר תראו במי בחר כל מצביע, ובנוסף תראו דרך אחת לבחור מנצח.\nבשאלות הבאות תראו בחירת מנצחים על ידי חוקים שונים.',
-        footnote: texts['fallback.pages:overview:footnote'] ?? '',
+        title: texts['fallback.pages:overview:title'],
+        body: texts['fallback.pages:overview:body'],
+        footnote: texts['fallback.pages:overview:footnote'],
       },
     },
     {
       type: 'textInput',
       id: 'feedback',
       props: {
-        prompt: texts['fallback.pages:feedback:prompt'] ?? 'נשמח למשוב בנוגע לסקר.',
-        helperText: texts['fallback.pages:feedback:helperText'] ?? 'פרטו מעט או הרבה ככל שתרצו, נשתמש במשוב זה על מנת לבחון את תוצאות הסקר.',
-        placeholder: texts['fallback.pages:feedback:placeholder'] ?? 'חווייתי בסקר הייתה...',
+        prompt: texts['fallback.pages:feedback:prompt'],
+        helperText: texts['fallback.pages:feedback:helperText'],
+        placeholder: texts['fallback.pages:feedback:placeholder'],
         rows: 8,
         required: false,
         maxLength: 800,
@@ -250,46 +250,46 @@ export const fallbackSurveyConfig: SurveyConfig = {
       type: 'questionnaire',
       id: 'demographic',
       props: {
-        title: texts['fallback.pages:demographic:title'] ?? 'פרטים דמוגרפיים',
-        description: texts['fallback.pages:demographic:description'] ?? 'מספר שאלות עליכם לפני שנתחיל.',
+        title: texts['fallback.pages:demographic:title'],
+        description: texts['fallback.pages:demographic:description'],
         summaryKey: 'participant',
         questions: [
           {
             id: 'gender',
-            prompt: texts['fallback.pages:demographic:questions:gender:prompt'] ?? 'מגדר',
+            prompt: texts['fallback.pages:demographic:questions:gender:prompt'],
             variant: 'select',
             required: true,
-            placeholder: texts['fallback.pages:demographic:questions:gender:placeholder'] ?? 'בחר אפשרות',
+            placeholder: texts['fallback.pages:demographic:questions:gender:placeholder'],
             options: [
-              { value: 'm', label: texts['fallback.pages:demographic:questions:gender:option:m'] ?? 'גבר' },
-              { value: 'f', label: texts['fallback.pages:demographic:questions:gender:option:f'] ?? 'אישה' },
-              { value: 'x', label: texts['fallback.pages:demographic:questions:gender:option:x'] ?? 'אחר' },
+              { value: 'm', label: texts['fallback.pages:demographic:questions:gender:option:m'] },
+              { value: 'f', label: texts['fallback.pages:demographic:questions:gender:option:f'] },
+              { value: 'x', label: texts['fallback.pages:demographic:questions:gender:option:x'] },
             ],
             outputKey: ['gender'],
           },
           {
             id: 'education',
-            prompt: texts['fallback.pages:demographic:questions:education:prompt'] ?? 'מהי רמת ההשכלה שלכם?',
+            prompt: texts['fallback.pages:demographic:questions:education:prompt'],
             variant: 'select',
             required: true,
-            placeholder: texts['fallback.pages:demographic:questions:education:placeholder'] ?? 'בחר אפשרות',
+            placeholder: texts['fallback.pages:demographic:questions:education:placeholder'],
             options: [
-              { value: 'highschool', label: texts['fallback.pages:demographic:questions:education:option:highschool'] ?? 'תיכונית ומטה' },
-              { value: 'student', label: texts['fallback.pages:demographic:questions:education:option:student'] ?? 'סטודנט לתואר ראשון' },
-              { value: 'graduate', label: texts['fallback.pages:demographic:questions:education:option:graduate'] ?? 'בוגר תואר ראשון' },
+              { value: 'highschool', label: texts['fallback.pages:demographic:questions:education:option:highschool'] },
+              { value: 'student', label: texts['fallback.pages:demographic:questions:education:option:student'] },
+              { value: 'graduate', label: texts['fallback.pages:demographic:questions:education:option:graduate'] },
               { value: 'postgrad', label: texts['fallback.pages:demographic:questions:education:option:postgrad'] ?? 'תואר שני ומעלה' }
             ],
             outputKey: ['education'],
           },
           {
             id: 'age',
-            prompt: texts['fallback.pages:demographic:questions:age:prompt'] ?? 'מה גילכם?',
+            prompt: texts['fallback.pages:demographic:questions:age:prompt'],
             variant: 'numeric',
             required: true,
             min: 0,
             step: 1,
             outputKey: ['age'],
-            meta: { label: texts['fallback.pages:demographic:questions:age:meta:label'] ?? 'גיל המשתתף' },
+            meta: { label: texts['fallback.pages:demographic:questions:age:meta:label'] },
           },
         ],
       },
@@ -298,22 +298,22 @@ export const fallbackSurveyConfig: SurveyConfig = {
       type: 'instance',
       id: 'perpetual-demo',
       props: {
-        title: texts['fallback.pages:perpetual-demo:title'] ?? 'דוגמה למעבר על מופע.',
+        title: texts['fallback.pages:perpetual-demo:title'],
         introText:
-          texts['fallback.pages:perpetual-demo:introText'] ?? 'למטה ניתן לראות מופע פשוט עם שלושה מצביעים על פני שלושה ימים, התקדמו בימים ובסוף הביעו את דעתכם על ההוגנות.\nבשאלות הבאות ייתכן ויופיעו הסברים למה החוק בחר את המנצח שבחר.',
+          texts['fallback.pages:perpetual-demo:introText'],
         showResultsExplanation: true,
         voters: [
-          { id: 1, label: texts['fallback.pages:perpetual-demo:voters:1:label'] ?? 'מצביע 1' },
-          { id: 2, label: texts['fallback.pages:perpetual-demo:voters:2:label'] ?? 'מצביע 2' },
-          { id: 3, label: texts['fallback.pages:perpetual-demo:voters:3:label'] ?? 'מצביע 3' },
+          { id: 1, label: texts['fallback.pages:perpetual-demo:voters:1:label'] },
+          { id: 2, label: texts['fallback.pages:perpetual-demo:voters:2:label'] },
+          { id: 3, label: texts['fallback.pages:perpetual-demo:voters:3:label'] },
         ],
         explanations: [
-          texts['fallback.pages:perpetual-demo:explanations:0'] ?? 'כאן לפעמים יהיה הסבר מדוע נבחר A בתור המנצח ביום הראשון.',
-          texts['fallback.pages:perpetual-demo:explanations:1'] ?? 'עבור כל מופע תראו הסברים שונים.',
-          texts['fallback.pages:perpetual-demo:explanations:2'] ?? 'לאחר שתראו את כל המופע, תעברו לשלב הבא.',
-          texts['fallback.pages:perpetual-demo:explanations:3'] ?? 'כאן לפעמים יהיה הסבר מדוע נבחר A בתור המנצח ביום הראשון.',
-          texts['fallback.pages:perpetual-demo:explanations:4'] ?? 'עבור כל מופע תראו הסברים שונים.',
-          texts['fallback.pages:perpetual-demo:explanations:5'] ?? 'לאחר שתראו את כל המופע, תעברו לשלב הבא.',
+          texts['fallback.pages:perpetual-demo:explanations:0'],
+          texts['fallback.pages:perpetual-demo:explanations:1'],
+          texts['fallback.pages:perpetual-demo:explanations:2'],
+          texts['fallback.pages:perpetual-demo:explanations:3'],
+          texts['fallback.pages:perpetual-demo:explanations:4'],
+          texts['fallback.pages:perpetual-demo:explanations:5'],
         ],
         days: [
           {
@@ -373,9 +373,9 @@ export const fallbackSurveyConfig: SurveyConfig = {
         ],
         rating: {
           scaleSize: 7,
-          prompt: texts['fallback.pages:perpetual-demo:rating:prompt'] ?? 'בשלב זה תדרגו כמה לדעתכם הייתה הוגנת בחירת המנצחים על פני כל המופע, נסו לדרג עכשיו.',
-          minLabel: texts['fallback.pages:perpetual-demo:rating:minLabel'] ?? 'לא הוגנת בכלל',
-          maxLabel: texts['fallback.pages:perpetual-demo:rating:maxLabel'] ?? 'הוגנת לגמרי',
+          prompt: texts['fallback.pages:perpetual-demo:rating:prompt'],
+          minLabel: texts['fallback.pages:perpetual-demo:rating:minLabel'],
+          maxLabel: texts['fallback.pages:perpetual-demo:rating:maxLabel'],
         },
       },
     },
@@ -383,9 +383,9 @@ export const fallbackSurveyConfig: SurveyConfig = {
       type: 'text',
       id: 'thank-you',
       props: {
-        title: texts['fallback.pages:thank-you:title'] ?? 'תודה רבה!',
-        body: texts['fallback.pages:thank-you:body'] ?? 'תודה לכם על ההשתפות, התוצאות ישומשו למחקר.\nאנא לחצו על "שליחה" על מנת לסיים.',
-        footnote: texts['fallback.pages:thank-you:footnote'] ?? '',
+        title: texts['fallback.pages:thank-you:title'],
+        body: texts['fallback.pages:thank-you:body'],
+        footnote: texts['fallback.pages:thank-you:footnote'],
       },
     },
     ...createInstancePages(),
