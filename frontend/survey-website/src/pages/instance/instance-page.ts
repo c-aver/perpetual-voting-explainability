@@ -174,6 +174,13 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
 
     const props = this.getProps();
     const copy = this.copy.instancePage;
+    const hasRevealedVotes = this.revealedVoteDays > 0;
+
+    this.tableContainer.hidden = !hasRevealedVotes;
+    if (!hasRevealedVotes) {
+      this.tableContainer.replaceChildren();
+      return;
+    }
 
     const table = document.createElement('table');
     table.className = 'instance-page__table';
@@ -274,15 +281,10 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
       return;
     }
 
-    const normalizedExpanded = this.normalizeDayCount(
-      typeof this.expandedExplanationDay === 'number' ? this.expandedExplanationDay : undefined,
-      this.revealedWinnerDays,
-    );
-    if (normalizedExpanded > 0) {
-      this.expandedExplanationDay = normalizedExpanded;
-    } else if (this.expandedExplanationDay !== null) {
-      this.expandedExplanationDay = this.revealedWinnerDays;
-    }
+    const normalizedExpanded = typeof this.expandedExplanationDay === 'number'
+      ? this.normalizeDayCount(this.expandedExplanationDay, this.revealedWinnerDays)
+      : 0;
+    const requestedExpandedDay = normalizedExpanded > 0 ? normalizedExpanded : undefined;
 
     const explainedDays = props.days
       .slice(0, this.revealedWinnerDays)
@@ -295,42 +297,52 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
       return;
     }
 
+    if (typeof requestedExpandedDay === 'number') {
+      const hasExpanded = explainedDays.some((entry) => entry.dayNumber === requestedExpandedDay);
+      this.expandedExplanationDay = hasExpanded ? requestedExpandedDay : null;
+    } else if (this.expandedExplanationDay === undefined) {
+      this.expandedExplanationDay = explainedDays[explainedDays.length - 1]?.dayNumber ?? null;
+    }
+
     this.winnersContainer.hidden = false;
-    const list = document.createElement('ol');
-    list.className = 'instance-page__explanation-list';
+    const tabs = document.createElement('div');
+    tabs.className = 'instance-page__explanation-tabs';
+    tabs.setAttribute('role', 'tablist');
 
     explainedDays.forEach((entry) => {
       const day = entry.dayNumber;
       const isExpanded = day === this.expandedExplanationDay;
-      const item = document.createElement('li');
-      item.className = 'instance-page__explanation-item';
-      item.dataset.day = day.toString();
-
       const toggle = document.createElement('button');
       toggle.type = 'button';
       toggle.className = 'instance-page__explanation-toggle';
       toggle.dataset.day = day.toString();
-      toggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+      toggle.setAttribute('aria-pressed', isExpanded ? 'true' : 'false');
+      toggle.setAttribute('role', 'tab');
+      toggle.textContent = this.copy.instancePage.dayHeader(day);
+      tabs.appendChild(toggle);
+    });
 
-      const heading = document.createElement('span');
+    const expandedEntry = explainedDays.find((entry) => entry.dayNumber === this.expandedExplanationDay);
+    const panel = document.createElement('div');
+    panel.className = 'instance-page__explanation-panel';
+    panel.hidden = !expandedEntry;
+
+    if (expandedEntry) {
+      const heading = document.createElement('p');
       heading.className = 'instance-page__explanation-heading';
-      heading.textContent = this.copy.instancePage.dayHeader(day);
-      toggle.appendChild(heading);
-      item.appendChild(toggle);
+      heading.textContent = this.copy.instancePage.dayHeader(expandedEntry.dayNumber);
 
       const explanation = document.createElement('div');
       explanation.className = 'instance-page__explanation-body';
-      explanation.hidden = !isExpanded;
       const explanationText = document.createElement('p');
       explanationText.className = 'instance-page__winner-explanation';
-      this.appendTextWithLineBreaks(explanationText, entry.text ?? '');
+      this.appendTextWithLineBreaks(explanationText, expandedEntry.text ?? '');
       explanation.appendChild(explanationText);
-      item.appendChild(explanation);
 
-      list.appendChild(item);
-    });
+      panel.append(heading, explanation);
+    }
 
-    this.winnersContainer.replaceChildren(list);
+    this.winnersContainer.replaceChildren(tabs, panel);
   }
 
   private updateRevealButton(): void {
@@ -423,7 +435,11 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
       this.revealedWinnerDays = Math.min(this.revealedVoteDays, this.revealedWinnerDays + 1);
       this.highlightedDay = this.revealedWinnerDays;
       this.pendingScrollDay = this.revealedWinnerDays;
-      this.expandedExplanationDay = this.revealedWinnerDays;
+      if (this.hasExplanationForDay(this.revealedWinnerDays)) {
+        this.expandedExplanationDay = this.revealedWinnerDays;
+      } else {
+        this.expandedExplanationDay = null;
+      }
     }
 
     this.persistState();
@@ -472,6 +488,19 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
 
   private getDayConfig(dayNumber: number): InstanceDayConfig | undefined {
     return this.getProps().days.find((entry) => entry.day === dayNumber);
+  }
+
+  private hasExplanationForDay(dayNumber: number): boolean {
+    const props = this.getProps();
+    if (!props.showResultsExplanation || !Array.isArray(props.explanations)) {
+      return false;
+    }
+    const dayIndex = props.days.findIndex((day) => day.day === dayNumber);
+    if (dayIndex < 0) {
+      return false;
+    }
+    const explanation = props.explanations[dayIndex];
+    return Boolean(explanation);
   }
 
   private normalizeRatingConfig(config?: InstanceRatingConfig): Required<InstanceRatingConfig> {
