@@ -13,7 +13,7 @@ import type { PageDescriptor } from '../pagination/types.ts';
 import { resolvePageTemplate } from './page-templates.ts';
 
 const DEFAULT_RTL_LOCALES = ['ar', 'fa', 'he', 'ur'];
-const ORDERING_PREFIX_PAGE_IDS = ['intro', 'demographic', 'overview', 'perpetual-demo'];
+const ORDERING_PREFIX_PAGE_IDS = ['intro', 'demographic', 'perpetual-demo', 'overview'];
 const ORDERING_POSTFIX_PAGE_IDS = ['feedback', 'thank-you'];
 const RANDOMIZED_INSTANCE_COUNT = 4;
 const INSTANCE_ID_POOL = ['simple', 'complicated', 'few_rounds', 'few_voters'];

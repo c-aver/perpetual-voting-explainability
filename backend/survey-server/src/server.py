@@ -27,8 +27,8 @@ TRIPLE_CYCLE_SIZE = 64
 PREFIX_QUESTIONS = [
     'intro',
     'demographic',
+    'perpetual-demo',
     'overview',
-    'perpetual-demo'
 ]
 POSTFIX_QUESTIONS = [
     'feedback',

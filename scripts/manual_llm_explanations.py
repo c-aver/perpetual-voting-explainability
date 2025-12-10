@@ -26,7 +26,7 @@ RULE_LABELS = {
 }
 PROMPT_INSTRUCTIONS = dedent(
     """
-    You are generating Hebrew explanations for a simulated participatory budgeting process.
+    You are generating Hebrew explanations for a simulated perpetual voting process.
     Focus on the single rule listed below.
     Goals:
     - Make sure you know the voting rule that is used, they are all established rules in literature.

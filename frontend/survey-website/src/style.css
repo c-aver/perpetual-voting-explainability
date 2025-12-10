@@ -96,27 +96,6 @@ h1 {
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vanilla:hover {
-  filter: drop-shadow(0 0 2em #3178c6aa);
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: var(--color-muted-strong);
-}
-
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -470,37 +449,30 @@ button:disabled {
 .instance-page__explanations {
   display: flex;
   flex-direction: column;
-}
-
-.instance-page__explanation-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
   gap: 0.75rem;
 }
 
-.instance-page__explanation-item {
-  border: 1px solid var(--color-border-soft);
-  border-radius: 12px;
-  background: var(--color-panel);
-  overflow: hidden;
-  box-shadow: var(--shadow-panel);
+.instance-page__explanation-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .instance-page__explanation-toggle {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.85rem 1rem;
-  background: transparent;
-  border: none;
-  color: inherit;
-  font: inherit;
-  text-align: start;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-panel);
+  color: var(--color-muted-strong);
+  font-size: 0.9rem;
+  padding: 0.4rem 0.9rem;
   cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.instance-page__explanation-toggle[aria-pressed="true"] {
+  background: var(--highlight-bg);
+  border-color: var(--highlight-border);
+  color: var(--color-text);
 }
 
 .instance-page__explanation-toggle:focus-visible {
@@ -508,24 +480,26 @@ button:disabled {
   outline-offset: 3px;
 }
 
-.instance-page__explanation-toggle::after {
-  content: '+';
-  font-weight: 700;
-  transition: transform 150ms ease;
+.instance-page__explanation-panel {
+  border: 1px solid var(--color-border-strong);
+  border-radius: 12px;
+  background: var(--color-panel);
+  box-shadow: var(--shadow-panel);
+  padding: 1rem 1.25rem;
 }
 
-.instance-page__explanation-toggle[aria-expanded="true"]::after {
-  content: '-';
-}
-
-.instance-page__explanation-body {
-  padding: 0 1rem 1rem;
+.instance-page__explanation-panel[hidden] {
+  display: none;
 }
 
 .instance-page__explanation-heading {
-  margin: 0;
+  margin: 0 0 0.5rem;
   font-weight: 600;
   text-align: start;
+}
+
+.instance-page__explanation-body {
+  padding: 0;
 }
 
 .instance-page__winner-explanation {

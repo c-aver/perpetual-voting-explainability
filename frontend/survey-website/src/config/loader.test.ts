@@ -95,8 +95,8 @@ describe('loadSurveyConfig', () => {
     expect(result.pages.slice(0, 4).map((page) => page.id)).toEqual([
       'intro',
       'demographic',
-      'overview',
       'perpetual-demo',
+      'overview',
     ]);
     expect(result.pages.slice(-2).map((page) => page.id)).toEqual(['feedback', 'thank-you']);
     const randomizedSection = result.pages.slice(4, -2);
@@ -116,8 +116,8 @@ describe('loadSurveyConfig', () => {
     expect(result.pages.slice(0, 4).map((page) => page.id)).toEqual([
       'intro',
       'demographic',
-      'overview',
       'perpetual-demo',
+      'overview',
     ]);
     expect(result.pages.slice(-2).map((page) => page.id)).toEqual(['feedback', 'thank-you']);
     result.pages.slice(4, -2).forEach((page) => {
@@ -139,8 +139,8 @@ describe('loadSurveyConfig', () => {
     const storedOrder = [
       'intro',
       'demographic',
-      'overview',
       'perpetual-demo',
+      'overview',
       'instance-simple-approval-none',
       'instance-complicated-unit_cost-mechanical',
       'instance-few_rounds-equal_shares-instance_based',
@@ -200,8 +200,8 @@ describe('loadSurveyConfig', () => {
     const storedOrder = [
       'intro',
       'demographic',
-      'overview',
       'perpetual-demo',
+      'overview',
       'instance-simple-approval-instance_based',
       'instance-complicated-unit_cost-none',
       'instance-few_rounds-approval-mechanical',
