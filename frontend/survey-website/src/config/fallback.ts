@@ -250,8 +250,8 @@ export const fallbackSurveyConfig: SurveyConfig = {
       type: 'questionnaire',
       id: 'demographic',
       props: {
-        title: 'פרטים דמוגרפיים',
-        description: 'מספר שאלות עליכם לפני שנתחיל.',
+        title: texts['fallback.pages:demographic:title'] ?? 'פרטים דמוגרפיים',
+        description: texts['fallback.pages:demographic:description'] ?? 'מספר שאלות עליכם לפני שנתחיל.',
         summaryKey: 'participant',
         questions: [
           {
