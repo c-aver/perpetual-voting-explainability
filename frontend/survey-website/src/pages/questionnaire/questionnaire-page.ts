@@ -172,6 +172,11 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
       ? { [props.summaryKey]: submission }
       : submission;
 
+    this.persistData({
+      answers,
+      submission: submissionPayload,
+    });
+
     return {
       valid: true,
       data: {
@@ -247,6 +252,7 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
         }
         this.updateNextButtonState();
         this.flow.setError();
+        this.persistState();
       },
       copy: this.copy,
     }) ?? this.createFallbackField();
@@ -302,6 +308,30 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
     });
 
     this.flow.setNextEnabled(allRequiredSatisfied);
+  }
+
+  private persistState(): void {
+    const props = this.descriptor.props ?? { questions: [] };
+    const answers: Record<string, QuestionnaireAnswer> = {};
+    const submission: Record<string, unknown> = {};
+
+    props.questions.forEach((question) => {
+      const answer = this.answerMap.get(question.id);
+      if (!answer) {
+        return;
+      }
+      answers[question.id] = answer;
+      this.applySubmissionValue(submission, question.outputKey ?? question.id, answer.value);
+    });
+
+    const submissionPayload = props.summaryKey
+      ? { [props.summaryKey]: submission }
+      : submission;
+
+    this.persistData({
+      answers,
+      submission: submissionPayload,
+    });
   }
 
   /**

@@ -56,6 +56,14 @@ export abstract class BasePage<
   }
 
   /**
+   * Persists in-progress page data locally and forwards it to the paginator when supported.
+   */
+  protected persistData(data: TData | undefined): void {
+    this.savedData = data;
+    this.flow.setPageData?.(data as unknown);
+  }
+
+  /**
    * Called before the page is removed from view; default implementation is a no-op.
    */
   onLeave(): void {

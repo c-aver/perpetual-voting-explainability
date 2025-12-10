@@ -159,4 +159,5 @@ export interface FlowControls {
   setNextEnabled(enabled: boolean): void;
   setError(message?: string): void;
   setDirection?(direction: TextDirection): void;
+  setPageData?(data: unknown): void;
 }

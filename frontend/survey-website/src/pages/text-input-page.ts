@@ -45,18 +45,21 @@ export class TextInputPage extends BasePage<TextInputPageResult, TextInputPagePr
     this.flow.setError();
     const trimmed = this.currentValue.trim();
     if (trimmed.length === 0 && !(this.descriptor.props?.required)) {
-      this.savedData = undefined;
+      this.persistData(undefined);
       this.persistAutosave(null);
       return;
     }
 
-    this.persistAutosave({
+    const result: TextInputPageResult = {
       value: this.currentValue,
       metadata: {
         updatedAt: new Date().toISOString(),
         length: this.currentValue.length,
       },
-    });
+    };
+
+    this.persistAutosave(result);
+    this.persistData(result);
   };
 
   onEnter(data?: TextInputPageResult): void {
@@ -152,7 +155,7 @@ export class TextInputPage extends BasePage<TextInputPageResult, TextInputPagePr
     if (!props.required && trimmed.length === 0) {
       this.clearError();
       this.persistAutosave(null);
-      this.savedData = undefined;
+      this.persistData(undefined);
       return { valid: true };
     }
 
@@ -166,7 +169,7 @@ export class TextInputPage extends BasePage<TextInputPageResult, TextInputPagePr
 
     this.clearError();
     this.persistAutosave(result);
-    this.savedData = result;
+    this.persistData(result);
 
     return { valid: true, data: result };
   }

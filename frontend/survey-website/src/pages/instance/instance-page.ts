@@ -499,7 +499,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
   }
 
   private persistState(): void {
-    this.savedData = this.buildResult();
+    this.persistData(this.buildResult());
   }
 
   private appendTextWithLineBreaks(element: HTMLElement, text: string): void {

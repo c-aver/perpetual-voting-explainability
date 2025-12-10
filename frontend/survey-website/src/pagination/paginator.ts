@@ -103,6 +103,14 @@ export class Paginator {
       setDirection: (direction: TextDirection) => {
         this.setDirection(direction);
       },
+      setPageData: (data: unknown) => {
+        if (!this.currentDescriptor || this.currentIndex < 0) {
+          return;
+        }
+        const key = this.keyFor(this.currentDescriptor, this.currentIndex);
+        this.dataByKey.set(key, data);
+        this.persistState();
+      },
     };
 
     this.restoreFromStorage();
