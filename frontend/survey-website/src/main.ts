@@ -15,6 +15,13 @@ import { resolveCopyCatalog } from './config/copy.ts';
 import type { InstancePagePropsConfig, LoadedSurveyConfig, TextDirection } from './config/types.ts';
 import { resolveSubmitEndpoint } from './config/api-endpoints.ts';
 
+type ThemeMode = 'auto' | 'light' | 'dark';
+
+const DEFAULT_THEME: ThemeMode = 'light'; // Set to 'auto' to follow system preference
+
+let autoThemeMediaQuery: MediaQueryList | undefined;
+let autoThemeListener: ((event: MediaQueryListEvent) => void) | undefined;
+
 const registry: PageRegistry = {
 	text: (context) => new TextPage(context as PageFactoryContext<TextPageProps, void>),
 	textInput: (context) =>
@@ -32,6 +39,7 @@ const registry: PageRegistry = {
  * and attaching submission handlers inside the #app container.
  */
 async function bootstrap(): Promise<void> {
+	applyPreferredTheme(DEFAULT_THEME);
 	const app = document.querySelector<HTMLDivElement>('#app');
 	if (!app) {
 		throw new Error('Failed to locate #app container.');
@@ -187,6 +195,48 @@ function clearAutosaveEntries(keys: string[]): void {
 			console.warn('Failed to clear autosave key', key, error);
 		}
 	});
+}
+
+function applyPreferredTheme(mode: ThemeMode): void {
+	if (typeof document === 'undefined') {
+		return;
+	}
+
+	const root = document.documentElement;
+	const cleanupAutoListener = (): void => {
+		if (autoThemeMediaQuery && autoThemeListener) {
+			autoThemeMediaQuery.removeEventListener('change', autoThemeListener);
+		}
+		autoThemeMediaQuery = undefined;
+		autoThemeListener = undefined;
+	};
+
+	const setTheme = (theme: 'light' | 'dark'): void => {
+		root.setAttribute('data-theme', theme);
+		root.style.colorScheme = theme;
+	};
+
+	if (mode === 'auto') {
+		cleanupAutoListener();
+		if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+			setTheme('dark');
+			return;
+		}
+
+		autoThemeMediaQuery = window.matchMedia('(prefers-color-scheme: light)');
+		const syncTheme = (): void => {
+			setTheme(autoThemeMediaQuery && autoThemeMediaQuery.matches ? 'light' : 'dark');
+		};
+		autoThemeListener = () => {
+			syncTheme();
+		};
+		autoThemeMediaQuery.addEventListener('change', autoThemeListener);
+		syncTheme();
+		return;
+	}
+
+	cleanupAutoListener();
+	setTheme(mode);
 }
 
 void bootstrap();
