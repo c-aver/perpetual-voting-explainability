@@ -77,7 +77,10 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     if (props.title) {
       const heading = document.createElement('h2');
       heading.className = 'instance-page__title';
-      heading.textContent = props.title;
+      const numberSuffix = typeof props.questionNumber === 'number'
+        ? ` ${props.questionNumber}`
+        : '';
+      heading.textContent = `${props.title}${numberSuffix}`.trim();
       wrapper.appendChild(heading);
     }
 

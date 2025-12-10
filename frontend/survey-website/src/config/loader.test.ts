@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadSurveyConfig } from './loader.ts';
 import { fallbackSurveyConfig } from './fallback.ts';
-import type { SurveyPageConfig } from './types.ts';
+import type { InstancePagePropsConfig, SurveyPageConfig } from './types.ts';
 import { resolveQuestionOrderEndpoint } from './api-endpoints.ts';
 
 describe('loadSurveyConfig', () => {
@@ -100,8 +100,10 @@ describe('loadSurveyConfig', () => {
     ]);
     expect(result.pages.slice(-2).map((page) => page.id)).toEqual(['feedback', 'thank-you']);
     const randomizedSection = result.pages.slice(4, -2);
-    randomizedSection.forEach((page) => {
+    randomizedSection.forEach((page, index) => {
       expect(page.id?.startsWith('instance-')).toBe(true);
+      const props = page.props as InstancePagePropsConfig | undefined;
+      expect(props?.questionNumber).toBe(index + 1);
     });
   });
 

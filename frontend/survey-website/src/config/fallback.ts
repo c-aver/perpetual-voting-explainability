@@ -169,7 +169,6 @@ function shouldShowResultsExplanation(explanationId: string, explanations?: stri
 }
 
 function createInstancePages(): SurveyPageConfig[] {
-  // instance-{instanceId}-{ruleId}-{explanationId}
   let result: SurveyPageConfig[] = [];
   for (const instanceId of instanceIds) {
     for (const ruleId of ruleIds) {

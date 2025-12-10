@@ -2,6 +2,7 @@ import { fallbackSurveyConfig } from './fallback.ts';
 import { resolveCopyCatalog } from './copy.ts';
 import type {
   DirectionSetting,
+  InstancePagePropsConfig,
   LoadedSurveyConfig,
   QuestionnairePropsConfig,
   ResolvedSurveySettings,
@@ -48,6 +49,7 @@ export async function loadSurveyConfig(
   const persistedPages = resolvePersistedOrder(resolvedPages, persistedOrder);
   const orderedPages = persistedPages
     ?? await applyBackendOrdering(resolvedPages, config.settings, fetcher);
+  annotateInstanceQuestionNumbers(orderedPages);
   persistPageOrderSnapshot(storageKey, storageVersion, orderedPages);
 
   const settings = resolveSettings(config.settings, languageOverride);
@@ -276,6 +278,47 @@ function collectPagesById(pages: PageDescriptor[], ids: string[]): PageDescripto
   return ids
     .map((id) => pages.find((page) => page.id === id))
     .filter((page): page is PageDescriptor => Boolean(page));
+}
+
+function annotateInstanceQuestionNumbers(pages: PageDescriptor[]): void {
+  let index = 0;
+  for (const descriptor of pages) {
+    if (!isGeneratedInstancePage(descriptor)) {
+      continue;
+    }
+
+    const props = descriptor.props as InstancePagePropsConfig | undefined;
+    if (!props) {
+      continue;
+    }
+
+    index += 1;
+    descriptor.props = {
+      ...props,
+      questionNumber: index,
+    };
+  }
+}
+
+function isGeneratedInstancePage(
+  descriptor: PageDescriptor,
+): descriptor is PageDescriptor<InstancePagePropsConfig> {
+  if (descriptor.type !== 'instance' || typeof descriptor.id !== 'string') {
+    return false;
+  }
+
+  const parts = descriptor.id.split('-');
+  if (parts.length < 4 || parts[0] !== 'instance') {
+    return false;
+  }
+
+  const instanceId = parts[1];
+  const ruleId = parts[2];
+  const explanationId = parts.slice(3).join('-');
+
+  return INSTANCE_ID_POOL.includes(instanceId)
+    && RULE_ID_POOL.includes(ruleId)
+    && EXPLANATION_ID_POOL.includes(explanationId);
 }
 
 interface PersistedPaginatorStateSnapshot {

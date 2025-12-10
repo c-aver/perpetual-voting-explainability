@@ -66,6 +66,7 @@ export interface InstancePagePropsConfig {
   days: InstanceDayConfig[];
   explanations?: string[];
   rating?: InstanceRatingConfig;
+  questionNumber?: number;
 }
 
 /**
