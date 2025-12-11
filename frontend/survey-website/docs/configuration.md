@@ -28,6 +28,26 @@ This guide documents the survey configuration pipeline implemented in `src/confi
 
 Questionnaire pages embed their `questions` inline using the `QuestionDescriptor` type (`id`, `prompt`, `variant`, etc.) defined in `pages/questionnaire/question-types.ts`.
 
+- Every descriptor may declare `correctAnswer`, whose type matches the variant value (string for select, number for numeric, etc.). Filled answers that do not match trigger the localized `validation.questionnaire.incorrectAnswer` message while leaving the “Next” button enabled so participants can retry.
+- When `attemptTracking` is present on the questionnaire props, the page records how many navigation attempts were blocked because of incorrect answers. That counter is persisted via `QuestionnairePageResult.incorrectAttempts`, optionally rendered inline, and may be written into the submission payload with `attemptTracking.outputKey`.
+- Set `attemptTracking.showSummary = false` to hide the inline counter while still capturing the attempt total in validation results and submissions.
+- If none of the questions define `correctAnswer`, the inline summary and `incorrectAttempts` payload are omitted entirely (even when `attemptTracking` is configured).
+
+```ts
+interface QuestionnaireAttemptTracking {
+	/** Optional submission key (dot path or array) for the attempt counter. */
+	outputKey?: string | string[];
+	/** Custom label prefix rendered before the dynamic counter value. */
+	label?: string;
+	/** Controls whether the inline attempt summary is shown (defaults to true). */
+	showSummary?: boolean;
+}
+```
+
+When `label` is omitted the bundle falls back to `copy.questionnairePage.attemptCounterLabel(count)` so locales can own the default phrasing.
+
+All validation payloads now mirror this counter through `QuestionnairePageResult.incorrectAttempts`.
+
 ## Backend Endpoints
 
 The frontend derives backend URLs through `src/config/api-endpoints.ts`, which inspects Vite environment variables for overrides:

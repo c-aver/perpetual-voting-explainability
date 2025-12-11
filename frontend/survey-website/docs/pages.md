@@ -62,6 +62,8 @@ Renders structured question groups defined by `QuestionDescriptor`s.
 - Supports multiple variants: select, numeric input, short text, etc.
 - Maps question metadata to specific input controls and aggregates results into an output object keyed by `outputKey` descriptors.
 - Displays optional help text, placeholders, and validation requirements per question.
+- Honors `correctAnswer` declarations to flag filled-but-incorrect responses without blocking the Next button, allowing lightweight quizzes inside the flow.
+- When `attemptTracking` is configured, it can surface an inline counter (or stay hidden via `showSummary: false`) while still storing `incorrectAttempts` alongside the submission for downstream analysis. If no questions specify `correctAnswer`, both the counter and `incorrectAttempts` field are skipped automatically.
 - Useful for collecting demographic or follow-up data.
 
 ### `questionnaire/question-types.ts`

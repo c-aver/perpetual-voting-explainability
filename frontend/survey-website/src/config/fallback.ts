@@ -294,6 +294,73 @@ export const fallbackSurveyConfig: SurveyConfig = {
       },
     },
     {
+      type: 'questionnaire',
+      id: 'knowledge-check',
+      props: {
+        title: texts['fallback.pages:quiz:title'],
+        description: texts['fallback.pages:quiz:description'],
+        summaryKey: 'knowledgeCheck',
+        attemptTracking: {
+          outputKey: ['attempts'],
+          label: texts['fallback.pages:quiz:attemptsLabel'],
+          showSummary: false,
+        },
+        questions: [
+          {
+            id: 'day-4-winner',
+            prompt: texts['fallback.pages:quiz:questions:day-4-winner:prompt'],
+            variant: 'select',
+            required: true,
+            placeholder: texts['fallback.pages:quiz:questions:day-4-winner:placeholder'],
+            options: [
+              { value: 'a', label: texts['fallback.pages:quiz:questions:day-4-winner:option:a'] },
+              { value: 'b', label: texts['fallback.pages:quiz:questions:day-4-winner:option:b'] },
+              { value: 'c', label: texts['fallback.pages:quiz:questions:day-4-winner:option:c'] },
+            ],
+            correctAnswer: 'a',
+            outputKey: ['responses', 'day-4-winner'],
+          },
+          {
+            id: 'number-of-winners',
+            prompt: texts['fallback.pages:quiz:questions:number-of-winners:prompt'],
+            variant: 'numeric',
+            required: true,
+            min: 1,
+            step: 1,
+            helpText: texts['fallback.pages:quiz:questions:number-of-winners:help'],
+            correctAnswer: 1,
+            outputKey: ['responses', 'number-of-winners'],
+          },
+          {
+            id: 'voter-1-satisfied',
+            prompt: texts['fallback.pages:quiz:questions:voter-1-satisfied:prompt'],
+            variant: 'select',
+            required: true,
+            placeholder: texts['fallback.pages:quiz:questions:voter-1-satisfied:placeholder'],
+            options: [
+              { value: 'y', label: texts['fallback.pages:quiz:questions:voter-1-satisfied:option:y'] },
+              { value: 'n', label: texts['fallback.pages:quiz:questions:voter-1-satisfied:option:n'] },
+            ],
+            correctAnswer: 'y',
+            outputKey: ['responses', 'voter-1-satisfied'],
+          },
+          {
+            id: 'voter-3-satisfied',
+            prompt: texts['fallback.pages:quiz:questions:voter-3-satisfied:prompt'],
+            variant: 'select',
+            required: true,
+            placeholder: texts['fallback.pages:quiz:questions:voter-3-satisfied:placeholder'],
+            options: [
+              { value: 'y', label: texts['fallback.pages:quiz:questions:voter-3-satisfied:option:y'] },
+              { value: 'n', label: texts['fallback.pages:quiz:questions:voter-3-satisfied:option:n'] },
+            ],
+            correctAnswer: 'n',
+            outputKey: ['responses', 'voter-3-satisfied'],
+          },
+        ],
+      },
+    },
+    {
       type: 'instance',
       id: 'perpetual-demo',
       props: {

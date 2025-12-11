@@ -15,6 +15,11 @@ export interface QuestionnairePageProps {
   description?: string;
   questions: QuestionDescriptor[];
   summaryKey?: string;
+  attemptTracking?: {
+    outputKey?: string | string[];
+    label?: string;
+    showSummary?: boolean;
+  };
 }
 
 /**
@@ -33,6 +38,7 @@ export interface QuestionnaireAnswer<TValue = unknown> {
 export interface QuestionnairePageResult {
   answers: Record<string, QuestionnaireAnswer>;
   submission: Record<string, unknown>;
+  incorrectAttempts?: number;
 }
 
 interface QuestionInstance {
@@ -49,6 +55,9 @@ interface QuestionInstance {
 export class QuestionnairePage extends BasePage<QuestionnairePageResult, QuestionnairePageProps> {
   private readonly instances: QuestionInstance[] = [];
   private readonly answerMap = new Map<string, QuestionnaireAnswer>();
+  private incorrectAttemptCount = 0;
+  private attemptSummaryEl?: HTMLParagraphElement;
+  private supportsCorrectAnswers = false;
 
   onEnter(data?: QuestionnairePageResult): void {
     super.onEnter(data);
@@ -58,11 +67,15 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
         this.answerMap.set(answer.questionId, answer);
       });
     }
+    this.incorrectAttemptCount = data?.incorrectAttempts ?? 0;
   }
 
   render(): void {
     const props = this.descriptor.props ?? { questions: [] };
     this.instances.length = 0;
+    this.supportsCorrectAnswers = props.questions.some(
+      (question) => question.correctAnswer !== undefined && question.correctAnswer !== null,
+    );
 
     const wrapper = document.createElement('div');
     wrapper.className = 'questionnaire-page';
@@ -77,7 +90,7 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
     if (props.description) {
       const description = document.createElement('p');
       description.className = 'questionnaire-page__description';
-      description.textContent = props.description;
+      this.setMultilineContent(description, props.description);
       wrapper.appendChild(description);
     }
 
@@ -91,6 +104,18 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
     });
 
     wrapper.appendChild(questionsContainer);
+
+    const shouldShowAttempts = props.attemptTracking?.showSummary ?? true;
+    if (props.attemptTracking && shouldShowAttempts && this.supportsCorrectAnswers) {
+      const attemptSummary = document.createElement('p');
+      attemptSummary.className = 'questionnaire-page__attempts';
+      this.attemptSummaryEl = attemptSummary;
+      wrapper.appendChild(attemptSummary);
+      this.updateAttemptSummary();
+    } else {
+      this.attemptSummaryEl = undefined;
+    }
+
     this.container.replaceChildren(wrapper);
 
     this.updateNextButtonState();
@@ -111,6 +136,8 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
     let firstInvalid: QuestionInstance | undefined;
     let firstValidationMessage: string | undefined;
     const validationCopy = this.copy.validation.questionnaire;
+    let hadIncorrectAnswer = false;
+    let hadMissingRequired = false;
 
     for (const instance of this.instances) {
       const value = instance.field.getValue();
@@ -124,6 +151,7 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
       const hasValue = value !== undefined && value !== null && value !== '';
       if (descriptor.required && !hasValue) {
         this.setQuestionError(instance, validationCopy.questionRequired);
+        hadMissingRequired = true;
         if (!firstInvalid) {
           firstInvalid = instance;
           firstValidationMessage = validationCopy.summaryRequired;
@@ -149,8 +177,22 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
         continue;
       }
 
+      const normalizedValue = validated?.value ?? value;
+
+      if (descriptor.correctAnswer !== undefined && descriptor.correctAnswer !== null) {
+        if (!this.isAnswerCorrect(descriptor.correctAnswer, normalizedValue)) {
+          this.setQuestionError(instance, validationCopy.incorrectAnswer, 'incorrect');
+          hadIncorrectAnswer = true;
+          if (!firstInvalid) {
+            firstInvalid = instance;
+            firstValidationMessage = validationCopy.reviewPrompt;
+          }
+          continue;
+        }
+      }
+
       const payload: QuestionnaireAnswer = {
-        value: validated?.value ?? value,
+        value: normalizedValue,
         variant: descriptor.variant,
         questionId: descriptor.id,
         metadata: descriptor.meta,
@@ -160,7 +202,18 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
       this.applySubmissionValue(submission, descriptor.outputKey ?? descriptor.id, payload.value);
     }
 
+    if (this.supportsCorrectAnswers && this.descriptor.props?.attemptTracking?.outputKey) {
+      this.applySubmissionValue(
+        submission,
+        this.descriptor.props.attemptTracking.outputKey,
+        this.incorrectAttemptCount,
+      );
+    }
+
     if (firstInvalid) {
+      if (hadIncorrectAnswer && !hadMissingRequired) {
+        this.recordIncorrectAttempt();
+      }
       firstInvalid.field.focus();
       return {
         valid: false,
@@ -172,17 +225,30 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
       ? { [props.summaryKey]: submission }
       : submission;
 
-    this.persistData({
+    const persistedResult: QuestionnairePageResult = {
       answers,
       submission: submissionPayload,
-    });
+    };
+    if (this.supportsCorrectAnswers) {
+      persistedResult.incorrectAttempts = this.incorrectAttemptCount;
+    }
+
+    this.persistData(persistedResult);
+
+    const resultData: QuestionnairePageResult = this.supportsCorrectAnswers
+      ? {
+        answers,
+        submission: submissionPayload,
+        incorrectAttempts: this.incorrectAttemptCount,
+      }
+      : {
+        answers,
+        submission: submissionPayload,
+      };
 
     return {
       valid: true,
-      data: {
-        answers,
-        submission: submissionPayload,
-      },
+      data: resultData,
     };
   }
 
@@ -281,6 +347,7 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
    */
   private clearQuestionError(instance: QuestionInstance): void {
     instance.container.classList.remove('questionnaire-question--invalid');
+    instance.container.classList.remove('questionnaire-question--incorrect');
     instance.errorEl.hidden = true;
     instance.errorEl.textContent = '';
   }
@@ -288,8 +355,16 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
   /**
    * Applies validation error styling and message to a question container.
    */
-  private setQuestionError(instance: QuestionInstance, message: string): void {
-    instance.container.classList.add('questionnaire-question--invalid');
+  private setQuestionError(
+    instance: QuestionInstance,
+    message: string,
+    variant: 'invalid' | 'incorrect' = 'invalid',
+  ): void {
+    const cssClass =
+      variant === 'incorrect'
+        ? 'questionnaire-question--incorrect'
+        : 'questionnaire-question--invalid';
+    instance.container.classList.add(cssClass);
     instance.errorEl.hidden = false;
     instance.errorEl.textContent = message;
   }
@@ -324,14 +399,27 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
       this.applySubmissionValue(submission, question.outputKey ?? question.id, answer.value);
     });
 
+    if (this.supportsCorrectAnswers && this.descriptor.props?.attemptTracking?.outputKey) {
+      this.applySubmissionValue(
+        submission,
+        this.descriptor.props.attemptTracking.outputKey,
+        this.incorrectAttemptCount,
+      );
+    }
+
     const submissionPayload = props.summaryKey
       ? { [props.summaryKey]: submission }
       : submission;
 
-    this.persistData({
+    const persistedResult: QuestionnairePageResult = {
       answers,
       submission: submissionPayload,
-    });
+    };
+    if (this.supportsCorrectAnswers) {
+      persistedResult.incorrectAttempts = this.incorrectAttemptCount;
+    }
+
+    this.persistData(persistedResult);
   }
 
   /**
@@ -364,6 +452,53 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
     }
 
     cursor[path[path.length - 1]] = value;
+  }
+
+  private setMultilineContent(target: HTMLElement, value: string): void {
+    target.textContent = '';
+    const segments = value.split(/\n/g);
+    segments.forEach((segment, index) => {
+      target.append(document.createTextNode(segment));
+      if (index < segments.length - 1) {
+        target.append(document.createElement('br'));
+      }
+    });
+  }
+
+  private recordIncorrectAttempt(): void {
+    if (!this.supportsCorrectAnswers) {
+      return;
+    }
+    this.incorrectAttemptCount += 1;
+    this.updateAttemptSummary();
+    this.persistState();
+  }
+
+  private updateAttemptSummary(): void {
+    if (!this.attemptSummaryEl) {
+      return;
+    }
+
+    if (!this.incorrectAttemptCount) {
+      this.attemptSummaryEl.hidden = true;
+      this.attemptSummaryEl.textContent = '';
+      return;
+    }
+
+    const propLabel = this.descriptor.props?.attemptTracking?.label;
+    const label = propLabel
+      ? `${propLabel} ${this.incorrectAttemptCount}`
+      : this.copy.questionnairePage?.attemptCounterLabel?.(this.incorrectAttemptCount)
+        ?? `Incorrect attempts: ${this.incorrectAttemptCount}`;
+    this.attemptSummaryEl.hidden = false;
+    this.attemptSummaryEl.textContent = label;
+  }
+
+  private isAnswerCorrect(expected: unknown, actual: unknown): boolean {
+    if (typeof expected === 'string' && typeof actual === 'string') {
+      return expected.trim().toLowerCase() === actual.trim().toLowerCase();
+    }
+    return expected === actual;
   }
 
   /**

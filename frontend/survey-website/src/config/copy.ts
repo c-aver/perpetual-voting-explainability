@@ -31,6 +31,7 @@ const enUS: LocalizationBundle = {
       invalidResponse: 'Invalid response.',
       reviewPrompt: 'Please review the highlighted questions.',
       unsupportedQuestion: 'Unsupported question type',
+      incorrectAnswer: 'This answer is incorrect. Please try again.',
     },
     numeric: {
       minValue: (min) => `Value must be at least ${min}.`,
@@ -72,6 +73,9 @@ const enUS: LocalizationBundle = {
     additionalFeedbackLabel: "Could you explain the reason behind the rating you have chosen?",
     additionalFeedbackPlaceholder: 'Optional feedback',
   },
+  questionnairePage: {
+    attemptCounterLabel: (count) => `Incorrect attempts: ${count}`,
+  },
 };
 
 const heIL: LocalizationBundle = {
@@ -103,6 +107,7 @@ const heIL: LocalizationBundle = {
       invalidResponse: 'תשובה לא תקינה.',
       reviewPrompt: 'בדקו מחדש את השאלות המסומנות.',
       unsupportedQuestion: 'סוג שאלה לא נתמך',
+      incorrectAnswer: 'התשובה אינה נכונה. נסו שוב.',
     },
     numeric: {
       minValue: (min) => `הערך חייב להיות לפחות ${min}.`,
@@ -143,6 +148,9 @@ const heIL: LocalizationBundle = {
     winnerRowLabel: 'מנצח',
     additionalFeedbackLabel: 'האם תוכלו להסביר את הסיבה לדירוג שבחרתם?',
     additionalFeedbackPlaceholder: 'תשובה חופשית (לא חובה)',
+  },
+  questionnairePage: {
+    attemptCounterLabel: (count) => `מספר ניסיונות לא מוצלחים: ${count}`,
   },
 };
 

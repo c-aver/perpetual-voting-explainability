@@ -20,6 +20,7 @@ export interface QuestionDescriptorBase<
   outputKey?: string | string[];
   meta?: Record<string, unknown>;
   defaultValue?: TValue;
+  correctAnswer?: TValue;
 }
 
 /**

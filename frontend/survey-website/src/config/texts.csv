@@ -1,20 +1,20 @@
 field,text
-mechanicalExplanations:approval,חוק זה בוחר בכל יום את האפשרות שלה מצביעים הכי הרבה.
-mechanicalExplanations:unit_cost,"חוק זה נותן לכל מצביע משקל, בהתחלה כל המשקלים שווים 1, אך כל מצביע שלא מסופק ביום כלשהו (כלומר המנצחת לא הייתה אחת מהבחירות שלו) מקבל העלאה של 1 במשקל. בכל יום המנצחת היא האופציה שסכום המשקלים של המצביעים שלה הכי גבוה."
-mechanicalExplanations:equal_shares,"חוק זה נותן לכל מצביע תקציב התחלתי של k שקלים (מספר הימים הכולל). על מנת ""לקנות"" אפשרות המצביעים צריכים להוציא n שקלים, המנצחת היא האפשרות שהמאשרים שלה יכולים לקנות כשכל אחד משלם כמה שפחות."
-mechanicalExplanations:phragmen,"חוק זה נותן לכל מצביע ""עומס"", בהתחלה כל העומסים שווים 0, לאחר בחירת המנצח עומס המצביעים שהצביעו לו מתחלק באופן שווה ביניהם אך עולה בסך הכל ב-1. האפשרות המנצחת בכל יום היא זו שיש לה קבוצת מצביעים שיקבלו את העומס הנמוך ביותר."
-introByType:none,
-introByType:mechanical,
-introByType:instance_based,
-introByType:llm_generated,
-instanceRating:prompt,"אחרי שראית את כל המנצחים, כמה לדעתך הייתה התוצאה הוגנת באופן כללי?"
-instanceRating:minLabel,לא הוגנת בכלל
-instanceRating:maxLabel,הוגנת לגמרי
+mechanicalExplanations:approval,חוק זה בוחר בכל יום את המסעדה שהכי הרבה מצביעים בחרו בה.
+mechanicalExplanations:unit_cost,"חוק זה נותן משקל לכל מצביע, והמסעדה שנבחרת בכל יום היא זו שסכום המשקלים של המצביעים עבורה הוא הגבוה ביותר. בהתחלה המשקל של כל מצביע הוא 1. לאחר שנעשתה הבחירה בכל יום, כל מצביע שאינו מרוצה, כי הוא לא הצביע למסעדה שנבחרה ביום זה, מקבל העלאה של 1 במשקל שלו."
+mechanicalExplanations:equal_shares,"חוק זה צריך לדעת מראש כמה ימי הצבעה יהיו, והוא נעזר ב-2 פרמטרים: k, שזה מספר ימי ההצבעה, ו-n, שזה מספר המצביעים. החוק נותן לכל מצביע תקציב התחלתי של k שקלים. בכל יום המצביעים מנסים ""לקנות"" את המסעדה הרצויה להם, כאשר ""המחיר"" של כל מסעדה הוא n שקלים. המסעדה שנבחרת בכל יום היא זו שלאלו שהצביעו לה יש מספיק תקציב כדי לקנות אותה, וגם כל אחד מהם ישלם כמה שפחות."
+mechanicalExplanations:phragmen,"חוק זה נעזר בפרמטר n, שזה מספר המצביעים. החוק נותן לכל מצביע משקל התחלתי של 0 ק""ג. בכל יום, המצביעים מנסים ""להעמיס"" על עצמם את המשקל של המסעדה הרצויה להם, כאשר ""המשקל"" של כל מסעדה הוא n ק""ג. המסעדה שנבחרת בכל יום היא זו שלאלו שהצביעו לה יש את העומס (המצטבר) הנמוך ביותר."
+introByType:approval,בשאלה זו המנצחים ייבחרו על ידי חוק הבחירות AV.
+introByType:unit_cost,בשאלה זו המנצחים ייבחרו על ידי חוק הבחירות PUC.
+introByType:equal_shares,בשאלה זו המנצחים ייבחרו על ידי חוק הבחירות MES.
+introByType:phragmen,בשאלה זו המנצחים ייבחרו על ידי חוק הבחירות PP.
+instanceRating:prompt,"אחרי שראיתם את כל המנצחים, כמה לדעתכם היו התוצאות הוגנות באופן כללי?"
+instanceRating:minLabel,לא הוגנות בכלל
+instanceRating:maxLabel,הוגנות לגמרי
 fallback.pages:intro:title,קבלת החלטות קבוצתית
 fallback.pages:intro:body,"משתתפים יקרים,\n תודה על השתתפותכם במחקר זה!\n\n בשאלון הבא תתבקשו להביע את דעתכם בנוגע להוגנות בקבלת החלטות בקבוצה.\n מילוי השאלון לוקח כ-7 דק' והוא איננו דורש ידע מוקדם. \n השאלון אנונימי לחלוטין ותשובותיכם ישמשו לצרכי מחקר בלבד. המחקר אושר על ידי ועדת האתיקה של אוני' אריאל ומנוהל ע""י פרופ' נועם חזון."
 fallback.pages:intro:footnote,
-fallback.pages:overview:title,בחירות חוזרות
-fallback.pages:overview:body,"בחירות חוזרות הן בחירות בין מצביעים אשר מתקיימות באופן חוזר, בעמוד הבא תראו דוגמה ל""תרחיש בחירות"", כלומר תראו במי בחר כל מצביע, ובנוסף תראו דרך אחת לבחור מנצח.\nבשאלות הבאות תראו בחירת מנצחים על ידי חוקים שונים."
+fallback.pages:overview:title,שאלות
+fallback.pages:overview:body,"בשאלות הבאות תראו תרחישים שונים, כל אחד משתמש בחוק שונה על מנת לבחור את המנצח, דרגו את ההוגנות לפי דעתכם.\nהסטודנטים סומכים עליכם!\nבהצלחה."
 fallback.pages:overview:footnote,
 fallback.pages:feedback:prompt,נשמח למשוב בנוגע לסקר.
 fallback.pages:feedback:helperText,"פרטו מעט או הרבה ככל שתרצו, נשתמש במשוב זה על מנת לבחון את תוצאות הסקר."
@@ -26,29 +26,49 @@ fallback.pages:demographic:questions:gender:placeholder,בחר אפשרות
 fallback.pages:demographic:questions:gender:option:m,גבר
 fallback.pages:demographic:questions:gender:option:f,אישה
 fallback.pages:demographic:questions:gender:option:x,אחר
-fallback.pages:demographic:questions:education:prompt,מהי רמת ההשכלה שלכם?
+fallback.pages:demographic:questions:education:prompt,רמת ההשכלה
 fallback.pages:demographic:questions:education:placeholder,בחר אפשרות
 fallback.pages:demographic:questions:education:option:highschool,תיכונית ומטה
 fallback.pages:demographic:questions:education:option:student,סטודנט לתואר ראשון
 fallback.pages:demographic:questions:education:option:graduate,בוגר תואר ראשון
 fallback.pages:demographic:questions:education:option:postgrad,תואר שני ומעלה
-fallback.pages:demographic:questions:age:prompt,מה גילכם?
+fallback.pages:demographic:questions:age:prompt,גיל
 fallback.pages:demographic:questions:age:meta:label,גיל המשתתף
-fallback.pages:perpetual-demo:title,דוגמה למעבר על תרחיש.
-fallback.pages:perpetual-demo:introText,"במחקר זה עליכם לענות על 4 שאלות קצרות, אך עליכם לקרוא קודם את ההנחיות. אנא קראו אותן בעיון.\n\nהנכם נדרשים לסייע לקבוצות סטודנטים לקבל החלטות משותפות.\nקבוצת הסטודנטים לומדת יום-יום לקראת בחינה יחדיו והם מעוניינים להזמין אוכל בכל יום מימי הלמידה. כדי לקצר את זמני ההפסקות שלהם, הם מעוניינים להזמין אוכל *ממסעדה אחת בלבד* בכל יום.\nלצורך קבלת ההחלטה בכל יום, כל סטודנט מסמן בטופס ההצבעה מאילו מסעדות הוא היה מעוניין להזמין אוכל. לאחר מכן הסטודנטים משתמשים בחוק בחירות שמחליט מי המסעדה הנבחרת לאותו יום.\nלדוגמה, נניח שההצבעות של הסטודנטים ביום הראשון הן כפי שמתואר בטבלה הבאה:\n(לחצו על הכפתור למטה על מנת להתקדם)"
+fallback.pages:quiz:title,בדיקת ידע קצרה
+fallback.pages:quiz:description,לפני שנתקדם בואו נוודא שהבנתם את ההנחיות...\nניתן לחזור בכל עת לעמוד הקודם על מנת לראות את הדוגמה.
+fallback.pages:quiz:attemptsLabel,ניסיונות לא מוצלחים:
+fallback.pages:quiz:questions:day-4-winner:prompt,איזו אפשרות ניצחה ביום 4?
+fallback.pages:quiz:questions:day-4-winner:placeholder,בחרו את האפשרות המתאימה
+fallback.pages:quiz:questions:day-4-winner:option:a,A
+fallback.pages:quiz:questions:day-4-winner:option:b,B
+fallback.pages:quiz:questions:day-4-winner:option:c,C
+fallback.pages:quiz:questions:voter-3-satisfied:prompt,האם מצביע 3 מרוצה מהתוצאה ביום 2?
+fallback.pages:quiz:questions:voter-3-satisfied:placeholder,בחרו כן או לא
+fallback.pages:quiz:questions:voter-3-satisfied:option:y,כן
+fallback.pages:quiz:questions:voter-3-satisfied:option:n,לא
+fallback.pages:quiz:questions:voter-1-satisfied:prompt,האם מצביע 1 מרוצה מהתוצאה ביום 3?
+fallback.pages:quiz:questions:voter-1-satisfied:placeholder,בחרו כן או לא
+fallback.pages:quiz:questions:voter-1-satisfied:option:y,כן
+fallback.pages:quiz:questions:voter-1-satisfied:option:n,לא
+fallback.pages:quiz:questions:number-of-winners:prompt,כמה מסעדות יכולות לנצח בכל יום?
+fallback.pages:quiz:questions:number-of-winners:help,
+fallback.pages:quiz:questions:term:prompt,"מה משמעות המונח ""perpetual"" בהקשר של הסקר?"
+fallback.pages:quiz:questions:term:placeholder,בחרו תשובה
+fallback.pages:perpetual-demo:title,הנחיות המחקר
+fallback.pages:perpetual-demo:introText,"במחקר זה עליכם לענות על 4 שאלות קצרות, אך עליכם לקרוא קודם את ההנחיות. אנא קראו אותן בעיון.\n\nהנכם נדרשים לסייע לקבוצות סטודנטים לקבל החלטות משותפות.\nקבוצת הסטודנטים לומדת יום-יום לקראת בחינה יחדיו והם מעוניינים להזמין אוכל בכל יום מימי הלמידה. כדי לקצר את זמני ההפסקות שלהם, הם מעוניינים להזמין אוכל *ממסעדה אחת בלבד* בכל יום.\nלצורך קבלת ההחלטה בכל יום, כל סטודנט מסמן בטופס ההצבעה מאילו מסעדות הוא היה מעוניין להזמין אוכל. לאחר מכן הסטודנטים משתמשים בחוק בחירות שמחליט מי המסעדה הנבחרת לאותו יום.\n\nלדוגמה, נניח שההצבעות של הסטודנטים ביום הראשון הן כפי שמתואר בטבלה הבאה:\n(לחצו על הכפתור למטה על מנת להתקדם)"
 fallback.pages:perpetual-demo:voters:1:label,מצביע 1
 fallback.pages:perpetual-demo:voters:2:label,מצביע 2
 fallback.pages:perpetual-demo:voters:3:label,מצביע 3
 fallback.pages:perpetual-demo:explanations:0,"ניתן לראות שסטודנט 3 מעוניין להזמין אוכל ממסעדה A, וסטודנטים 1 ו-2 מעוניינים להזמין ממסעדה A או B.\n בנוסף ניתן לראות שהאפשרות המנצחת על פי חוק הבחירות הייתה מסעדה A.\n לחצו על הכפתור על מנת להתקדם לימים הבאים."
-fallback.pages:perpetual-demo:explanations:1,ניתן לפתוח את ההסברים לימים הקודמים על ידי לחיצה עליהם.
-fallback.pages:perpetual-demo:explanations:2,"לאחר שתראו את כל התרחיש, תעברו לשלב הבא."
-fallback.pages:perpetual-demo:explanations:3,כאן לפעמים יהיה הסבר מדוע נבחר א' בתור המנצח ביום הראשון.
-fallback.pages:perpetual-demo:explanations:4,עבור כל תרחיש תראו הסברים שונים.
-fallback.pages:perpetual-demo:explanations:5,"לאחר שתראו את כל התרחיש, תעברו לשלב הבא."
-fallback.pages:perpetual-demo:rating:prompt,"לאחר שתראו את כל ההצבעות ואת מה שחוק הבחירות החליט בכל יום, עליכם לדרג את ההוגנות של חוק הבחירות בסולם של 1 (כלל לא הוגן) עד 7 (הוגן לגמרי).\nהסטודנטים סומכים עליהם!\nבהצלחה."
+fallback.pages:perpetual-demo:explanations:1,
+fallback.pages:perpetual-demo:explanations:2,
+fallback.pages:perpetual-demo:explanations:3,
+fallback.pages:perpetual-demo:explanations:4,
+fallback.pages:perpetual-demo:explanations:5,
+fallback.pages:perpetual-demo:rating:prompt,"לאחר שראיתם את כל ההצבעות ואת מה שחוק הבחירות החליט בכל יום, עליכם לדרג את ההוגנות של חוק הבחירות בסולם של 1 (כלל לא הוגן) עד 7 (הוגן לגמרי).\nנסו לדרג עכשיו:"
 fallback.pages:perpetual-demo:rating:minLabel,לא הוגנת בכלל
 fallback.pages:perpetual-demo:rating:maxLabel,הוגנת לגמרי
 fallback.pages:thank-you:title,תודה רבה!
 fallback.pages:thank-you:body,"תודה לכם על ההשתפות, התוצאות ישומשו למחקר.\nאנא לחצו על ""שליחה"" על מנת לסיים."
 fallback.pages:thank-you:footnote,
-fallback.pages:instance:title,דוגמה למעבר על תרחיש.
+fallback.pages:instance:title,שאלה

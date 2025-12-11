@@ -91,15 +91,16 @@ describe('loadSurveyConfig', () => {
     const fetchImpl = vi.fn(async () => new Response('nope', { status: 500 }));
 
     const result = await loadSurveyConfig({ fetchImpl });
-    expect(result.pages).toHaveLength(10);
-    expect(result.pages.slice(0, 4).map((page) => page.id)).toEqual([
+    expect(result.pages).toHaveLength(11);
+    expect(result.pages.slice(0, 5).map((page) => page.id)).toEqual([
       'intro',
       'demographic',
       'perpetual-demo',
+      'knowledge-check',
       'overview',
     ]);
     expect(result.pages.slice(-2).map((page) => page.id)).toEqual(['feedback', 'thank-you']);
-    const randomizedSection = result.pages.slice(4, -2);
+    const randomizedSection = result.pages.slice(5, -2);
     randomizedSection.forEach((page, index) => {
       expect(page.id?.startsWith('instance-')).toBe(true);
       const props = page.props as InstancePagePropsConfig | undefined;
@@ -114,15 +115,16 @@ describe('loadSurveyConfig', () => {
     };
 
     const result = await loadSurveyConfig();
-    expect(result.pages).toHaveLength(10);
-    expect(result.pages.slice(0, 4).map((page) => page.id)).toEqual([
+    expect(result.pages).toHaveLength(11);
+    expect(result.pages.slice(0, 5).map((page) => page.id)).toEqual([
       'intro',
       'demographic',
       'perpetual-demo',
+      'knowledge-check',
       'overview',
     ]);
     expect(result.pages.slice(-2).map((page) => page.id)).toEqual(['feedback', 'thank-you']);
-    result.pages.slice(4, -2).forEach((page) => {
+    result.pages.slice(5, -2).forEach((page) => {
       expect(page.id?.startsWith('instance-')).toBe(true);
     });
   });
@@ -142,6 +144,7 @@ describe('loadSurveyConfig', () => {
       'intro',
       'demographic',
       'perpetual-demo',
+      'knowledge-check',
       'overview',
       'instance-simple-approval-none',
       'instance-complicated-unit_cost-mechanical',
@@ -203,6 +206,7 @@ describe('loadSurveyConfig', () => {
       'intro',
       'demographic',
       'perpetual-demo',
+      'knowledge-check',
       'overview',
       'instance-simple-approval-instance_based',
       'instance-complicated-unit_cost-none',

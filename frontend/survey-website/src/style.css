@@ -26,6 +26,8 @@
   --color-muted-strong: rgba(255, 255, 255, 0.6); /* Secondary UI copy */
   --color-helper: rgba(255, 255, 255, 0.65); /* Questionnaire helper text */
   --color-error: #ff7a7a; /* Validation/error messages */
+  --color-warning: #ffb347; /* Incorrect-answer highlights */
+  --color-warning-bg: rgba(255, 179, 71, 0.2); /* Incorrect-answer background */
   --color-input-bg: rgba(0, 0, 0, 0.25); /* Text areas and inputs */
   --color-input-border: rgba(255, 255, 255, 0.25); /* Input/question borders */
   --color-code-bg: rgba(0, 0, 0, 0.35); /* JSON payload box */
@@ -52,6 +54,8 @@
   --color-muted-strong: #60697a; /* Secondary copy in light scheme */
   --color-helper: #6b7384; /* Helper text light tone */
   --color-error: #c13b3b; /* Errors in light mode */
+  --color-warning: #d97c20; /* Incorrect-answer accent light mode */
+  --color-warning-bg: rgba(217, 124, 32, 0.15); /* Incorrect-answer background light */
   --color-input-bg: #ffffff; /* Inputs in light mode */
   --color-input-border: #c6d3ef; /* Input borders light mode */
   --color-code-bg: #eef1fb; /* JSON box light mode */
@@ -300,6 +304,11 @@ button:disabled {
   border-color: var(--color-error);
 }
 
+.questionnaire-question--incorrect {
+  border-color: var(--color-warning);
+  box-shadow: 0 0 0 1px var(--color-warning-bg);
+}
+
 .questionnaire-question__label {
   margin: 0;
   font-weight: 600;
@@ -319,6 +328,20 @@ button:disabled {
   margin: 0;
   color: var(--color-error);
   font-size: 0.9rem;
+}
+
+.questionnaire-question--incorrect .questionnaire-question__error {
+  color: var(--color-warning);
+}
+
+.questionnaire-page__attempts {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .questionnaire-field__control {

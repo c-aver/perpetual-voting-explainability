@@ -28,6 +28,7 @@ PREFIX_QUESTIONS = [
     'intro',
     'demographic',
     'perpetual-demo',
+    'knowledge-check'
     'overview',
 ]
 POSTFIX_QUESTIONS = [

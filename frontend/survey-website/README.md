@@ -85,6 +85,8 @@ Page modules:
 - `text-page.ts` — renders informational content with title/body/footnote sections.
 - `text-input-page.ts` — collects open-ended responses with autosave support and character counters.
 - `questionnaire/questionnaire-page.ts` — renders structured questions (single select, numeric input, etc.) using descriptors defined in configuration.
+	- Supports per-question `correctAnswer` metadata so designers can gate progress on knowledge checks without revealing the correct value.
+	- An optional `attemptTracking` config records `incorrectAttempts` in the submission payload for downstream scoring and can optionally surface (or hide) a localized inline counter; if no questions define `correctAnswer`, both the counter and field are omitted automatically.
 
 Shared interactions, such as enabling the next button only after validation prerequisites are met, are implemented in page-specific logic but conform to the flow API.
 

@@ -45,6 +45,7 @@ export interface LocalizationBundle {
       invalidResponse: string;
       reviewPrompt: string;
       unsupportedQuestion: string;
+      incorrectAnswer: string;
     };
     numeric: {
       minValue(min: number): string;
@@ -85,6 +86,9 @@ export interface LocalizationBundle {
     winnerRowLabel: string;
     additionalFeedbackLabel: string;
     additionalFeedbackPlaceholder: string;
+  };
+  questionnairePage?: {
+    attemptCounterLabel(count: number): string;
   };
 }
 
