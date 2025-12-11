@@ -7,8 +7,8 @@ SOURCE_DIR = ROOT / 'instance-csvs'
 CSV_FILES = {
     'simple': SOURCE_DIR / 'simple.csv',
     'complicated': SOURCE_DIR / 'complicated.csv',
-    'few_rounds': SOURCE_DIR / 'few_rounds.csv',
-    'few_voters': SOURCE_DIR / 'few_voters.csv',
+    'few_rounds_1': SOURCE_DIR / 'few_rounds.csv',
+    'few_rounds_2': SOURCE_DIR / 'few_rounds_2.csv',
 }
 RULE_MAP = {
     'APPROVAL': 'approval',

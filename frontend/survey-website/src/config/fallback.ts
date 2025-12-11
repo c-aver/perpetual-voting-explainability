@@ -103,8 +103,8 @@ const questionOrderingSource = resolveQuestionOrderEndpoint();
 const instanceIds = [
   'simple',
   'complicated',
-  'few_rounds',
-  'few_voters'
+  'few_rounds_1',
+  'few_rounds_2'
 ]
 
 const ruleIds = [

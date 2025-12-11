@@ -39,8 +39,8 @@ POSTFIX_QUESTIONS = [
 VOTING_INSTANCE_IDS = [
     'simple',
     'complicated',
-    'few_rounds',
-    'few_voters'
+    'few_rounds_1',
+    'few_rounds_2'
 ]
 
 RULE_IDS = [

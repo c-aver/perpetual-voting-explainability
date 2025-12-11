@@ -16,7 +16,7 @@ const DEFAULT_RTL_LOCALES = ['ar', 'fa', 'he', 'ur'];
 const ORDERING_PREFIX_PAGE_IDS = ['intro', 'demographic', 'perpetual-demo', 'knowledge-check', 'overview'];
 const ORDERING_POSTFIX_PAGE_IDS = ['feedback', 'thank-you'];
 const RANDOMIZED_INSTANCE_COUNT = 4;
-const INSTANCE_ID_POOL = ['simple', 'complicated', 'few_rounds', 'few_voters'];
+const INSTANCE_ID_POOL = ['simple', 'complicated', 'few_rounds_1', 'few_rounds_2'];
 const RULE_ID_POOL = ['approval', 'unit_cost', 'equal_shares', 'phragmen'];
 const EXPLANATION_ID_POOL = ['none', 'mechanical', 'instance_based', 'llm_generated'];
 

@@ -148,8 +148,8 @@ describe('loadSurveyConfig', () => {
       'overview',
       'instance-simple-approval-none',
       'instance-complicated-unit_cost-mechanical',
-      'instance-few_rounds-equal_shares-instance_based',
-      'instance-few_voters-phragmen-llm_generated',
+      'instance-few_rounds_1-equal_shares-instance_based',
+      'instance-few_rounds_2-phragmen-llm_generated',
       'feedback',
       'thank-you',
     ];
@@ -210,8 +210,8 @@ describe('loadSurveyConfig', () => {
       'overview',
       'instance-simple-approval-instance_based',
       'instance-complicated-unit_cost-none',
-      'instance-few_rounds-approval-mechanical',
-      'instance-few_voters-phragmen-llm_generated',
+      'instance-few_rounds_1-approval-mechanical',
+      'instance-few_rounds_2-phragmen-llm_generated',
       'feedback',
       'thank-you',
     ];
