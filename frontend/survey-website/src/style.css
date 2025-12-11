@@ -508,3 +508,38 @@ button:disabled {
   text-align: start;
 }
 
+.instance-page__feedback {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.instance-page__feedback[hidden] {
+  display: none;
+}
+
+.instance-page__feedback-label {
+  margin: 0;
+  font-weight: 600;
+  color: var(--color-muted-strong);
+}
+
+.instance-page__feedback-input {
+  width: 100%;
+  min-height: 3.25rem;
+  max-height: 4.5rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-input-border);
+  background: var(--color-input-bg);
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.instance-page__feedback-input:focus {
+  outline: 3px solid rgba(100, 108, 255, 0.35);
+  border-color: var(--color-accent);
+}
+

@@ -15,6 +15,7 @@ export interface InstancePageResult {
   maxRating: number;
   revealedDays?: number;
   expandedExplanationDay?: number | null;
+  additionalFeedback?: string;
 }
 
 const DEFAULT_SLIDER_LENGTH = 5;
@@ -31,11 +32,15 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
   private revealButton?: HTMLButtonElement;
   private ratingContainer?: HTMLDivElement;
   private ratingValueLabel?: HTMLSpanElement;
+  private feedbackContainer?: HTMLDivElement;
+  private feedbackInput?: HTMLTextAreaElement;
   private highlightedDay?: number;
   private pendingScrollDay?: number;
   private expandedExplanationDay?: number | null;
+  private additionalFeedback?: string;
   private readonly revealHandler = () => this.handleRevealNextDay();
   private readonly explanationToggleHandler = (event: Event) => this.handleExplanationToggle(event);
+  private readonly feedbackInputHandler = (event: Event) => this.handleFeedbackInput(event);
 
   onEnter(data?: InstancePageResult): void {
     super.onEnter(data);
@@ -52,6 +57,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     this.rating = data?.rating;
     this.highlightedDay = undefined;
     this.pendingScrollDay = undefined;
+    this.additionalFeedback = typeof data?.additionalFeedback === 'string' ? data.additionalFeedback : '';
 
     const savedExpandedRaw = data?.expandedExplanationDay;
     const normalizedExpanded = this.normalizeDayCount(
@@ -115,6 +121,10 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     this.ratingContainer.className = 'instance-page__rating';
     wrapper.appendChild(this.ratingContainer);
 
+    this.feedbackContainer = document.createElement('div');
+    this.feedbackContainer.className = 'instance-page__feedback';
+    wrapper.appendChild(this.feedbackContainer);
+
     this.container.replaceChildren(wrapper);
 
     this.refreshUi();
@@ -123,6 +133,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
   destroy(): void {
     this.winnersContainer?.removeEventListener('click', this.explanationToggleHandler);
     this.revealButton?.removeEventListener('click', this.revealHandler);
+    this.feedbackInput?.removeEventListener('input', this.feedbackInputHandler);
     super.destroy();
   }
 
@@ -155,6 +166,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     this.renderWinners();
     this.updateRevealButton();
     this.renderRatingSection();
+    this.renderFeedbackSection();
     this.syncNextButtonState();
   }
 
@@ -457,6 +469,45 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     }
     this.persistState();
     this.syncNextButtonState();
+    this.renderFeedbackSection();
+  }
+
+  private renderFeedbackSection(): void {
+    if (!this.feedbackContainer) {
+      return;
+    }
+
+    const hasRating = this.rating !== undefined;
+
+    if (!hasRating) {
+      this.feedbackInput?.removeEventListener('input', this.feedbackInputHandler);
+      this.feedbackInput = undefined;
+      this.feedbackContainer.hidden = true;
+      this.feedbackContainer.replaceChildren();
+      return;
+    }
+
+    this.feedbackContainer.hidden = false;
+    this.feedbackContainer.replaceChildren();
+
+    const textareaId = `${this.descriptor.id ?? 'instance'}-feedback`;
+    const label = document.createElement('label');
+    label.className = 'instance-page__feedback-label';
+    label.setAttribute('for', textareaId);
+    label.textContent = this.copy.instancePage.additionalFeedbackLabel;
+
+    const textarea = document.createElement('textarea');
+    textarea.className = 'instance-page__feedback-input';
+    textarea.rows = 3;
+    textarea.id = textareaId;
+    textarea.placeholder = this.copy.instancePage.additionalFeedbackPlaceholder;
+    textarea.value = this.additionalFeedback ?? '';
+
+    this.feedbackInput?.removeEventListener('input', this.feedbackInputHandler);
+    textarea.addEventListener('input', this.feedbackInputHandler);
+    this.feedbackInput = textarea;
+
+    this.feedbackContainer.append(label, textarea);
   }
 
   private syncNextButtonState(): void {
@@ -519,6 +570,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
   private buildResult(): InstancePageResult {
     const ratingConfig = this.normalizeRatingConfig(this.getProps().rating);
     const totalDays = this.getTotalDays();
+    const trimmedFeedback = this.additionalFeedback?.trim();
     return {
       revealedVotes: this.revealedVoteDays,
       revealedWinners: this.revealedWinnerDays,
@@ -527,6 +579,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
       rating: this.rating,
       maxRating: ratingConfig.scaleSize,
       expandedExplanationDay: this.expandedExplanationDay ?? null,
+      additionalFeedback: trimmedFeedback && trimmedFeedback.length > 0 ? trimmedFeedback : undefined,
     };
   }
 
@@ -604,6 +657,12 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     }
     this.persistState();
     this.renderWinners();
+  }
+
+  private handleFeedbackInput(event: Event): void {
+    const target = event.target as HTMLTextAreaElement;
+    this.additionalFeedback = target.value;
+    this.persistState();
   }
 
   private normalizeDayCount(value: number | undefined | null, max: number): number {

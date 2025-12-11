@@ -83,6 +83,8 @@ export interface LocalizationBundle {
     voterHeaderLabel: string;
     dayHeader(day: number): string;
     winnerRowLabel: string;
+    additionalFeedbackLabel: string;
+    additionalFeedbackPlaceholder: string;
   };
 }
 

@@ -69,6 +69,8 @@ const enUS: LocalizationBundle = {
     voterHeaderLabel: 'Voter',
     dayHeader: (day) => `Day ${day}`,
     winnerRowLabel: 'Winner',
+    additionalFeedbackLabel: "Could you explain the reason behind the rating you have chosen?",
+    additionalFeedbackPlaceholder: 'Optional feedback',
   },
 };
 
@@ -139,6 +141,8 @@ const heIL: LocalizationBundle = {
     voterHeaderLabel: 'מצביע',
     dayHeader: (day) => `יום ${day}`,
     winnerRowLabel: 'מנצח',
+    additionalFeedbackLabel: 'האם תוכלו להסביר את הסיבה לדירוג שבחרתם?',
+    additionalFeedbackPlaceholder: 'תשובה חופשית (לא חובה)',
   },
 };
 
