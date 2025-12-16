@@ -1,11 +1,11 @@
-import { BasePage } from '../base-page.ts';
-import type { PageValidationResult } from '../../pagination/types.ts';
+import { BasePage } from './base-page.ts';
+import type { PageValidationResult } from '../pagination/types.ts';
 import type {
   InstanceDayConfig,
   InstancePagePropsConfig,
   InstanceRatingConfig,
   InstanceVoterConfig,
-} from '../../config/types.ts';
+} from '../config/types.ts';
 
 export interface InstancePageResult {
   revealedVotes: number;
