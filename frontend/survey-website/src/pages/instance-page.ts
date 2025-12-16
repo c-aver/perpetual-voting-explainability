@@ -343,9 +343,6 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     panel.hidden = !expandedEntry;
 
     if (expandedEntry) {
-      const heading = document.createElement('p');
-      heading.className = 'instance-page__explanation-heading';
-      heading.textContent = this.copy.instancePage.dayHeader(expandedEntry.dayNumber);
 
       const explanation = document.createElement('div');
       explanation.className = 'instance-page__explanation-body';
@@ -354,7 +351,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
       this.appendTextWithLineBreaks(explanationText, expandedEntry.text ?? '');
       explanation.appendChild(explanationText);
 
-      panel.append(heading, explanation);
+      panel.append(explanation);
     }
 
     this.winnersContainer.replaceChildren(tabs, panel);
@@ -430,9 +427,9 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     sliderWrapper.appendChild(minLabel);
     sliderWrapper.appendChild(slider);
     sliderWrapper.appendChild(maxLabel);
+    sliderWrapper.appendChild(this.ratingValueLabel);
 
     this.ratingContainer.appendChild(sliderWrapper);
-    this.ratingContainer.appendChild(this.ratingValueLabel);
   }
 
   private handleRevealNextDay(): void {
@@ -532,7 +529,7 @@ export class InstancePage extends BasePage<InstancePageResult, InstancePageProps
     if (!vote || vote.selections.length === 0) {
       return '—';
     }
-    return vote.selections.join(', ');
+    return vote.selections.sort().join(', ');
   }
 
   private getWinnerDisplay(dayNumber: number): string {
