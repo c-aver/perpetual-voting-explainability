@@ -37,10 +37,7 @@ Ensure the `backend/storage-bucket` directory exists. The Flask app writes respo
 Launch the container, mapping the host storage bucket into the container path expected by the server:
 
 ```powershell
-docker run --rm \ 
-  -p 8080:8080 \ 
-  -v "${PWD}\backend\storage-bucket:/storage-bucket" \ 
-  survey-server
+docker run --rm -p 8080:8080 -v "${PWD}\backend\storage-bucket:/storage-bucket" survey-server
 ```
 
 This command:

@@ -138,7 +138,7 @@ def load_instance_data():
 
 
 def sorted_instances(available: Sequence[str]) -> List[str]:
-    preferred = ['simple', 'complicated', 'few_rounds_1', 'few_rounds_2']
+    preferred = ['simple', 'complicated', 'few_rounds']
     ordered = [name for name in preferred if name in available]
     ordered.extend(name for name in available if name not in ordered)
     return ordered

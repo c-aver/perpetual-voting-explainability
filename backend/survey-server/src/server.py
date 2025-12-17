@@ -21,8 +21,6 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 responses_file = os.environ.get('RESPONSE_STORAGE_FILE', '/storage-bucket/responses.json')
 triple_queue_file = os.environ.get('TRIPLE_QUEUE_FILE', '/storage-bucket/triple_queue.json')
 triple_queue_cycles_per_refill = int(os.environ.get('TRIPLE_QUEUE_REFILL_CYCLES', '1'))
-TRIPLE_BLOCK_SIZE = 4
-TRIPLE_CYCLE_SIZE = 64
 
 PREFIX_QUESTIONS = [
     'intro',
@@ -39,8 +37,7 @@ POSTFIX_QUESTIONS = [
 VOTING_INSTANCE_IDS = [
     'simple',
     'complicated',
-    'few_rounds_1',
-    'few_rounds_2'
+    'few_rounds'
 ]
 
 RULE_IDS = [
@@ -53,11 +50,19 @@ RULE_IDS = [
 EXPLANATION_IDS = [
     'none',
     'mechanical',
-    'instance_based',
-    'llm_generated'
+    'instance_based'
 ]
 
-QUESTIONS_PER_REQUEST = 4
+INSTANCE_VARIANT_COUNT = len(VOTING_INSTANCE_IDS)
+RULE_VARIANT_COUNT = len(RULE_IDS)
+EXPLANATION_VARIANT_COUNT = len(EXPLANATION_IDS)
+
+if INSTANCE_VARIANT_COUNT == 0 or RULE_VARIANT_COUNT == 0 or EXPLANATION_VARIANT_COUNT == 0:
+    raise ValueError('Instance, rule, and explanation identifiers must be configured.')
+
+TRIPLE_BLOCK_SIZE = max(INSTANCE_VARIANT_COUNT, RULE_VARIANT_COUNT, EXPLANATION_VARIANT_COUNT)
+TRIPLE_CYCLE_SIZE = INSTANCE_VARIANT_COUNT * RULE_VARIANT_COUNT * EXPLANATION_VARIANT_COUNT
+QUESTIONS_PER_REQUEST = TRIPLE_BLOCK_SIZE
 
 
 def hash_ip_address(address: str | None) -> str | None:
@@ -168,25 +173,25 @@ def persist_triple_queue(queue: list[dict[str, str]]) -> None:
 
 
 def generate_triple_cycle() -> list[dict[str, str]]:
-    blocks = [(u, v) for u in range(4) for v in range(4)]
+    blocks = [(u, v) for u in range(TRIPLE_BLOCK_SIZE) for v in range(TRIPLE_BLOCK_SIZE)]
     random.shuffle(blocks)
 
-    instance_perm = random.sample(range(4), 4)
-    rule_perm = random.sample(range(4), 4)
-    explanation_perm = random.sample(range(4), 4)
+    instance_perm = random.sample(range(INSTANCE_VARIANT_COUNT), INSTANCE_VARIANT_COUNT)
+    rule_perm = random.sample(range(RULE_VARIANT_COUNT), RULE_VARIANT_COUNT)
+    explanation_perm = random.sample(range(EXPLANATION_VARIANT_COUNT), EXPLANATION_VARIANT_COUNT)
 
     cycle: list[dict[str, str]] = []
     for (u, v) in blocks:
-        order = list(range(4))
+        order = list(range(TRIPLE_BLOCK_SIZE))
         random.shuffle(order)
         for i in order:
-            a_idx = instance_perm[i]
-            b_idx = rule_perm[(i + u) % 4]
-            c_idx = explanation_perm[(i + v) % 4]
+            a_idx = rule_perm[i]
+            b_idx = instance_perm[(i + u) % INSTANCE_VARIANT_COUNT]
+            c_idx = explanation_perm[(i + v) % EXPLANATION_VARIANT_COUNT]
             cycle.append(
                 {
-                    'instanceId': VOTING_INSTANCE_IDS[a_idx],
-                    'ruleId': RULE_IDS[b_idx],
+                    'ruleId': RULE_IDS[a_idx],
+                    'instanceId': VOTING_INSTANCE_IDS[b_idx],
                     'explanationId': EXPLANATION_IDS[c_idx],
                 },
             )
@@ -211,7 +216,9 @@ def refill_triple_queue(queue: list[dict[str, str]], required_blocks: int) -> No
 
 def generate_question_triples(count: int = QUESTIONS_PER_REQUEST) -> list[dict[str, str]]:
     if count % TRIPLE_BLOCK_SIZE != 0:
-        raise ValueError('generate_question_triples count must be a multiple of 4 to preserve coverage guarantees.')
+        raise ValueError(
+            f'generate_question_triples count must be a multiple of {TRIPLE_BLOCK_SIZE} to preserve coverage guarantees.',
+        )
 
     queue = load_triple_queue()
     blocks_needed = count // TRIPLE_BLOCK_SIZE

@@ -7,8 +7,7 @@ SOURCE_DIR = ROOT / 'instance-csvs'
 CSV_FILES = {
     'simple': SOURCE_DIR / 'simple.csv',
     'complicated': SOURCE_DIR / 'complicated.csv',
-    'few_rounds_1': SOURCE_DIR / 'few_rounds.csv',
-    'few_rounds_2': SOURCE_DIR / 'few_rounds_2.csv',
+    'few_rounds': SOURCE_DIR / 'few_rounds.csv',
 }
 RULE_MAP = {
     'APPROVAL': 'approval',
@@ -162,9 +161,6 @@ def main():
         '',
         'export const instanceBasedExplanations: Record<string, Record<string, string[]>> =',
         format_ts(explanations_data),
-        '',
-        'export const llmGeneratedExplanations: Record<string, Record<string, string[]>> =',
-        format_ts({instance: {} for instance in CSV_FILES.keys()}),
         '',
     ]
 

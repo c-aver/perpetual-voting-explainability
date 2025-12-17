@@ -4,7 +4,6 @@ import {
   instanceBasedExplanations,
   instanceDays,
   instanceVoters,
-  llmGeneratedExplanations,
 } from './instance-data.ts';
 import textsCsv from './texts.csv?raw';
 
@@ -103,8 +102,7 @@ const questionOrderingSource = resolveQuestionOrderEndpoint();
 const instanceIds = [
   'simple',
   'complicated',
-  'few_rounds_1',
-  'few_rounds_2'
+  'few_rounds'
 ]
 
 const ruleIds = [
@@ -117,8 +115,7 @@ const ruleIds = [
 const explanationIds = [
   'none',
   'mechanical',
-  'instance_based',
-  'llm_generated'
+  'instance_based'
 ]
 
 const mechanicalExplanations: Record<string, string> = {
@@ -146,7 +143,6 @@ const ruleExplanationByType: Record<string, Record<string, string> | undefined> 
   'none': undefined,
   'mechanical': mechanicalExplanations,
   'instance_based': mechanicalExplanations,
-  'llm_generated': undefined,
 }
 
 function resolveInstanceDays(instanceId: string, ruleId: string): InstanceDayConfig[] {
@@ -157,14 +153,11 @@ function resolveInstanceExplanations(instanceId: string, ruleId: string, explana
   if (explanationId === 'instance_based') {
     return instanceBasedExplanations[instanceId]?.[ruleId];
   }
-  if (explanationId === 'llm_generated') {
-    return llmGeneratedExplanations[instanceId]?.[ruleId];
-  }
   return undefined;
 }
 
 function shouldShowResultsExplanation(explanationId: string, explanations?: string[]): boolean {
-  const wantsExplanation = explanationId === 'instance_based' || explanationId === 'llm_generated';
+  const wantsExplanation = explanationId === 'instance_based';
   return wantsExplanation && Boolean(explanations && explanations.length > 0);
 }
 
