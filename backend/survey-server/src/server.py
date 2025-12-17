@@ -144,6 +144,30 @@ def save_response(response, hashed_ip: str | None = None):
 ensure_storage_file()
 
 
+def _is_valid_triple_entry(entry: dict[str, str]) -> bool:
+    if not isinstance(entry, dict):
+        return False
+
+    instance = entry.get('instanceId')
+    rule = entry.get('ruleId')
+    explanation = entry.get('explanationId')
+
+    return (
+        isinstance(instance, str)
+        and instance in VOTING_INSTANCE_IDS
+        and isinstance(rule, str)
+        and rule in RULE_IDS
+        and isinstance(explanation, str)
+        and explanation in EXPLANATION_IDS
+    )
+
+
+def _queue_entries_are_valid(entries):
+    if not isinstance(entries, list):
+        return False
+    return all(_is_valid_triple_entry(entry) for entry in entries)
+
+
 def load_triple_queue() -> list[dict[str, str]]:
     try:
         with open(triple_queue_file, 'r', encoding='utf-8') as file:
@@ -151,10 +175,10 @@ def load_triple_queue() -> list[dict[str, str]]:
     except FileNotFoundError:
         return []
     except json.JSONDecodeError:
-        return []
+        return reset_triple_queue_file()
 
-    if not isinstance(data, list):
-        return []
+    if not _queue_entries_are_valid(data):
+        return reset_triple_queue_file()
     return data  # type: ignore[return-value]
 
 
@@ -172,8 +196,14 @@ def persist_triple_queue(queue: list[dict[str, str]]) -> None:
         raise StorageError('Unable to write triple queue file.') from error
 
 
+def reset_triple_queue_file() -> list[dict[str, str]]:
+    fresh_queue = generate_triple_cycle()
+    persist_triple_queue(fresh_queue)
+    return fresh_queue
+
+
 def generate_triple_cycle() -> list[dict[str, str]]:
-    blocks = [(u, v) for u in range(TRIPLE_BLOCK_SIZE) for v in range(TRIPLE_BLOCK_SIZE)]
+    blocks = [(u, v) for u in range(INSTANCE_VARIANT_COUNT) for v in range(EXPLANATION_VARIANT_COUNT)]
     random.shuffle(blocks)
 
     instance_perm = random.sample(range(INSTANCE_VARIANT_COUNT), INSTANCE_VARIANT_COUNT)
