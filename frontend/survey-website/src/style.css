@@ -283,6 +283,14 @@ button:disabled {
   color: var(--color-muted);
 }
 
+.questionnaire-page__instance-summary {
+  margin-top: 1rem;
+}
+
+.questionnaire-page__instance-summary .instance-page__table-scroll {
+  margin-top: 0.5rem;
+}
+
 .questionnaire-page__questions {
   display: flex;
   flex-direction: column;

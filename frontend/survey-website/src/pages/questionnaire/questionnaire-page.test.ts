@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { QuestionnairePage, type QuestionnairePageProps, type QuestionnairePageResult } from './questionnaire-page.ts';
 import type { PageDescriptor, PageFactoryContext, FlowControls, FlowState } from '../../pagination/types.ts';
 import { resolveCopyCatalog } from '../../config/copy.ts';
+import type { InstancePagePropsConfig } from '../../config/types.ts';
 
 const createFlowControls = () => {
   let nextEnabled = false;
@@ -295,5 +296,41 @@ describe('QuestionnairePage', () => {
         attempts: 1,
       },
     });
+  });
+
+  it('renders supplemental instance summary table inside the description', () => {
+    const supplementalInstance: InstancePagePropsConfig = {
+      voters: [
+        { id: 1, label: 'Alice' },
+        { id: 2, label: 'Bob' },
+      ],
+      days: [
+        {
+          day: 1,
+          winner: 'A',
+          votes: [
+            { voterId: 1, selections: ['A', 'B'] },
+            { voterId: 2, selections: ['B'] },
+          ],
+        },
+      ],
+    };
+
+    const props: QuestionnairePageProps = {
+      ...defaultProps,
+      description: 'Review the full history.',
+      supplementalInstance,
+    };
+
+    const { context, container } = createContext(props);
+    const page = new QuestionnairePage(context);
+    page.render();
+
+    const description = container.querySelector('.questionnaire-page__description');
+    expect(description).not.toBeNull();
+    const summary = description?.querySelector('.questionnaire-page__instance-summary');
+    expect(summary).not.toBeNull();
+    const winnerCell = summary?.querySelector('tfoot td');
+    expect(winnerCell?.textContent).toBe('A');
   });
 });

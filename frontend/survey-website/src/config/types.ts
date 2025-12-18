@@ -33,6 +33,7 @@ export interface QuestionnairePropsConfig {
   description?: string;
   summaryKey?: string;
   questions?: QuestionDescriptor[];
+  supplementalInstance?: InstancePagePropsConfig;
 }
 
 export interface InstanceVoterConfig {
@@ -73,7 +74,7 @@ export interface InstancePagePropsConfig {
  * Page definition as provided by configuration files before runtime normalization.
  */
 export type SurveyPageConfig = Omit<PageDescriptor, 'props'> & {
-  props?: Record<string, unknown>;
+  props?: unknown;
 };
 
 /**

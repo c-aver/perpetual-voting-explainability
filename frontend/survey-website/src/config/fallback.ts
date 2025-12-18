@@ -1,4 +1,4 @@
-import type { InstanceDayConfig, SurveyConfig, SurveyPageConfig } from './types.ts';
+import type { InstanceDayConfig, InstancePagePropsConfig, SurveyConfig, SurveyPageConfig } from './types.ts';
 import { resolveQuestionOrderEndpoint } from './api-endpoints.ts';
 import {
   instanceBasedExplanations,
@@ -117,6 +117,87 @@ const explanationIds = [
   'mechanical',
   'instance_based'
 ]
+
+const perpetualDemoProps: InstancePagePropsConfig = {
+  title: texts['fallback.pages:perpetual-demo:title'],
+  introText: texts['fallback.pages:perpetual-demo:introText'],
+  showResultsExplanation: true,
+  voters: [
+    { id: 1, label: texts['fallback.pages:perpetual-demo:voters:1:label'] },
+    { id: 2, label: texts['fallback.pages:perpetual-demo:voters:2:label'] },
+    { id: 3, label: texts['fallback.pages:perpetual-demo:voters:3:label'] },
+  ],
+  explanations: [
+    texts['fallback.pages:perpetual-demo:explanations:0'],
+    texts['fallback.pages:perpetual-demo:explanations:1'],
+    texts['fallback.pages:perpetual-demo:explanations:2'],
+    texts['fallback.pages:perpetual-demo:explanations:3'],
+    texts['fallback.pages:perpetual-demo:explanations:4'],
+    texts['fallback.pages:perpetual-demo:explanations:5'],
+  ],
+  days: [
+    {
+      day: 1,
+      winner: 'A',
+      votes: [
+        { voterId: 1, selections: ['A', 'B'] },
+        { voterId: 2, selections: ['A', 'B'] },
+        { voterId: 3, selections: ['A'] },
+      ],
+    },
+    {
+      day: 2,
+      winner: 'B',
+      votes: [
+        { voterId: 1, selections: ['B', 'C'] },
+        { voterId: 2, selections: ['B'] },
+        { voterId: 3, selections: ['C', 'A'] },
+      ],
+    },
+    {
+      day: 3,
+      winner: 'C',
+      votes: [
+        { voterId: 1, selections: ['C', 'B'] },
+        { voterId: 2, selections: ['C'] },
+        { voterId: 3, selections: ['C', 'A'] },
+      ],
+    },
+    {
+      day: 4,
+      winner: 'A',
+      votes: [
+        { voterId: 1, selections: ['A', 'B'] },
+        { voterId: 2, selections: ['A', 'B'] },
+        { voterId: 3, selections: ['A'] },
+      ],
+    },
+    {
+      day: 5,
+      winner: 'B',
+      votes: [
+        { voterId: 1, selections: ['B', 'C'] },
+        { voterId: 2, selections: ['B'] },
+        { voterId: 3, selections: ['C', 'A'] },
+      ],
+    },
+    {
+      day: 6,
+      winner: 'C',
+      votes: [
+        { voterId: 1, selections: ['C', 'B'] },
+        { voterId: 2, selections: ['C'] },
+        { voterId: 3, selections: ['C', 'A'] },
+      ],
+    },
+  ],
+  rating: {
+    scaleSize: 7,
+    prompt: texts['fallback.pages:perpetual-demo:rating:prompt'],
+    minLabel: texts['fallback.pages:perpetual-demo:rating:minLabel'],
+    maxLabel: texts['fallback.pages:perpetual-demo:rating:maxLabel'],
+  },
+};
 
 const mechanicalExplanations: Record<string, string> = {
   'approval': texts['mechanicalExplanations:approval'],
@@ -292,6 +373,7 @@ export const fallbackSurveyConfig: SurveyConfig = {
       props: {
         title: texts['fallback.pages:quiz:title'],
         description: texts['fallback.pages:quiz:description'],
+        supplementalInstance: perpetualDemoProps,
         summaryKey: 'knowledgeCheck',
         attemptTracking: {
           outputKey: ['attempts'],
@@ -369,87 +451,7 @@ export const fallbackSurveyConfig: SurveyConfig = {
     {
       type: 'instance',
       id: 'perpetual-demo',
-      props: {
-        title: texts['fallback.pages:perpetual-demo:title'],
-        introText:
-          texts['fallback.pages:perpetual-demo:introText'],
-        showResultsExplanation: true,
-        voters: [
-          { id: 1, label: texts['fallback.pages:perpetual-demo:voters:1:label'] },
-          { id: 2, label: texts['fallback.pages:perpetual-demo:voters:2:label'] },
-          { id: 3, label: texts['fallback.pages:perpetual-demo:voters:3:label'] },
-        ],
-        explanations: [
-          texts['fallback.pages:perpetual-demo:explanations:0'],
-          texts['fallback.pages:perpetual-demo:explanations:1'],
-          texts['fallback.pages:perpetual-demo:explanations:2'],
-          texts['fallback.pages:perpetual-demo:explanations:3'],
-          texts['fallback.pages:perpetual-demo:explanations:4'],
-          texts['fallback.pages:perpetual-demo:explanations:5'],
-        ],
-        days: [
-          {
-            day: 1,
-            winner: 'A',
-            votes: [
-              { voterId: 1, selections: ['A', 'B'] },
-              { voterId: 2, selections: ['A', 'B'] },
-              { voterId: 3, selections: ['A'] },
-            ],
-          },
-          {
-            day: 2,
-            winner: 'B',
-            votes: [
-              { voterId: 1, selections: ['B', 'C'] },
-              { voterId: 2, selections: ['B'] },
-              { voterId: 3, selections: ['C', 'A'] },
-            ],
-          },
-          {
-            day: 3,
-            winner: 'C',
-            votes: [
-              { voterId: 1, selections: ['C', 'B'] },
-              { voterId: 2, selections: ['C'] },
-              { voterId: 3, selections: ['C', 'A'] },
-            ],
-          },
-          {
-            day: 4,
-            winner: 'A',
-            votes: [
-              { voterId: 1, selections: ['A', 'B'] },
-              { voterId: 2, selections: ['A', 'B'] },
-              { voterId: 3, selections: ['A'] },
-            ],
-          },
-          {
-            day: 5,
-            winner: 'B',
-            votes: [
-              { voterId: 1, selections: ['B', 'C'] },
-              { voterId: 2, selections: ['B'] },
-              { voterId: 3, selections: ['C', 'A'] },
-            ],
-          },
-          {
-            day: 6,
-            winner: 'C',
-            votes: [
-              { voterId: 1, selections: ['C', 'B'] },
-              { voterId: 2, selections: ['C'] },
-              { voterId: 3, selections: ['C', 'A'] },
-            ],
-          },
-        ],
-        rating: {
-          scaleSize: 7,
-          prompt: texts['fallback.pages:perpetual-demo:rating:prompt'],
-          minLabel: texts['fallback.pages:perpetual-demo:rating:minLabel'],
-          maxLabel: texts['fallback.pages:perpetual-demo:rating:maxLabel'],
-        },
-      },
+      props: perpetualDemoProps,
     },
     {
       type: 'questionnaire',

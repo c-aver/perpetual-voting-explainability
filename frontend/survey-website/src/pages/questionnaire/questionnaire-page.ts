@@ -1,5 +1,6 @@
 import { BasePage } from '../base-page.ts';
 import type { PageValidationResult } from '../../pagination/types.ts';
+import type { InstancePagePropsConfig } from '../../config/types.ts';
 import {
   getQuestionVariant,
   type QuestionDescriptor,
@@ -20,6 +21,7 @@ export interface QuestionnairePageProps {
     label?: string;
     showSummary?: boolean;
   };
+  supplementalInstance?: InstancePagePropsConfig;
 }
 
 /**
@@ -88,9 +90,10 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
     }
 
     if (props.description) {
-      const description = document.createElement('p');
+      const description = document.createElement('div');
       description.className = 'questionnaire-page__description';
       this.setMultilineContent(description, props.description);
+      this.appendSupplementalInstanceSummary(description, props.supplementalInstance);
       wrapper.appendChild(description);
     }
 
@@ -452,6 +455,122 @@ export class QuestionnairePage extends BasePage<QuestionnairePageResult, Questio
     }
 
     cursor[path[path.length - 1]] = value;
+  }
+
+  private appendSupplementalInstanceSummary(
+    target: HTMLElement,
+    instance?: InstancePagePropsConfig,
+  ): void {
+    if (!instance) {
+      return;
+    }
+
+    const summary = this.buildInstanceSummaryTable(instance);
+    if (summary) {
+      target.appendChild(summary);
+    }
+  }
+
+  private buildInstanceSummaryTable(instance: InstancePagePropsConfig): HTMLElement | undefined {
+    const voters = Array.isArray(instance.voters) ? instance.voters : [];
+    const days = Array.isArray(instance.days) ? [...instance.days] : [];
+    if (voters.length === 0 || days.length === 0) {
+      return undefined;
+    }
+
+    days.sort((a, b) => a.day - b.day);
+
+    const summary = document.createElement('div');
+    summary.className = 'questionnaire-page__instance-summary instance-page__table-container';
+
+    const scrollContainer = document.createElement('div');
+    scrollContainer.className = 'instance-page__table-scroll';
+
+    const table = document.createElement('table');
+    table.className = 'instance-page__table questionnaire-page__instance-summary-table';
+
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    const voterHeader = document.createElement('th');
+    voterHeader.textContent = this.copy.instancePage.voterHeaderLabel;
+    voterHeader.classList.add('instance-page__cell--frozen');
+    headerRow.appendChild(voterHeader);
+
+    days.forEach((day) => {
+      const dayHeader = document.createElement('th');
+      dayHeader.textContent = this.copy.instancePage.dayHeader(day.day);
+      dayHeader.dataset.day = day.day.toString();
+      headerRow.appendChild(dayHeader);
+    });
+
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+
+    voters.forEach((voter) => {
+      const row = document.createElement('tr');
+      const labelCell = document.createElement('th');
+      labelCell.scope = 'row';
+      labelCell.textContent = this.formatInstanceVoterLabel(voter);
+      labelCell.classList.add('instance-page__cell--frozen');
+      row.appendChild(labelCell);
+
+      days.forEach((day) => {
+        const cell = document.createElement('td');
+        cell.dataset.day = day.day.toString();
+        cell.textContent = this.formatInstanceBallot(day, voter.id);
+        row.appendChild(cell);
+      });
+
+      tbody.appendChild(row);
+    });
+
+    table.appendChild(tbody);
+
+    const tfoot = document.createElement('tfoot');
+    const winnerRow = document.createElement('tr');
+    winnerRow.className = 'instance-page__winner-row';
+    const labelCell = document.createElement('th');
+    labelCell.scope = 'row';
+    labelCell.textContent = this.copy.instancePage.winnerRowLabel;
+    labelCell.classList.add('instance-page__cell--frozen');
+    winnerRow.appendChild(labelCell);
+
+    days.forEach((day) => {
+      const valueCell = document.createElement('td');
+      valueCell.dataset.day = day.day.toString();
+      valueCell.textContent = day.winner ?? '—';
+      winnerRow.appendChild(valueCell);
+    });
+
+    tfoot.appendChild(winnerRow);
+    table.appendChild(tfoot);
+
+    scrollContainer.appendChild(table);
+    summary.appendChild(scrollContainer);
+
+    return summary;
+  }
+
+  private formatInstanceVoterLabel(voter: InstancePagePropsConfig['voters'][number]): string {
+    if (voter.label && voter.label.trim().length > 0) {
+      return voter.label;
+    }
+    return `Voter ${voter.id}`;
+  }
+
+  private formatInstanceBallot(
+    day: InstancePagePropsConfig['days'][number],
+    voterId: number,
+  ): string {
+    const votes = Array.isArray(day.votes) ? day.votes : [];
+    const vote = votes.find((entry) => entry.voterId === voterId);
+    if (!vote || !Array.isArray(vote.selections) || vote.selections.length === 0) {
+      return '—';
+    }
+    const selections = [...vote.selections].sort((a, b) => a.localeCompare(b));
+    return selections.join(', ');
   }
 
   private setMultilineContent(target: HTMLElement, value: string): void {
