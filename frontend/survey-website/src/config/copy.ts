@@ -55,6 +55,15 @@ const enUS: LocalizationBundle = {
     serverHeading: 'Server Response',
     submissionPending: 'Submitting response...',
     submissionFailedPrefix: 'Submission failed:',
+    submissionFailedMessage: 'We could not submit your response. Please try again later.',
+    serverMessages: {
+      success: 'Submission accepted successfully.',
+      invalid_payload: 'Submission payload was invalid. Please reload and try again.',
+      storage_error: 'Server could not persist your response. Please try again later.',
+    },
+    defaultServerMessage: 'Submission processed.',
+    unknownServerMessage: (code) => (code ? `Server status: ${code}` : 'Server status received.'),
+    submissionRetrying: (attempt, total) => `Retrying submission (${attempt}/${total})...`,
   },
   app: {
     loadFailure: 'Failed to load survey definition.',
@@ -98,7 +107,7 @@ const heIL: LocalizationBundle = {
     textInput: {
       inlineRequired: 'שדה חובה.',
       inlineMaxLength: (limit) => `התשובה חייבת להיות קצרה מ-${limit} תווים.`,
-      shellRequired: 'נא למלא תשובה לפני ההמשך.',
+      shellRequired: 'נא למלא תשובה כדי להמשיך.',
       shellMaxLength: (limit) => `התשובה חייבת להיות קצרה מ-${limit} תווים.`,
     },
     questionnaire: {
@@ -120,17 +129,26 @@ const heIL: LocalizationBundle = {
       patternMismatch: 'התשובה אינה עומדת בתבנית הנדרשת.',
     },
     instance: {
-      revealAllRounds: 'חשפו את כל ימי ההצבעה לפני ההמשך.',
+      revealAllRounds: 'חשפו את כל ימי ההצבעה כדי להמשיך.',
       ratingRequired: 'בחרו דירוג הוגנות כדי להמשיך.',
     },
   },
   completion: {
     heading: 'תודה!',
-    body: 'התשובות נשמרו.',
+    body: 'התשובות נשלחו.',
     responseHeading: 'נתוני שליחה',
     serverHeading: 'תגובה מהשרת',
     submissionPending: 'שולח תשובות...',
     submissionFailedPrefix: 'השליחה נכשלה:',
+    submissionFailedMessage: 'לא ניתן היה לשלוח את התשובות. נסו שוב מאוחר יותר.',
+    serverMessages: {
+      success: 'השליחה נקלטה בהצלחה.',
+      invalid_payload: 'הנתונים שנשלחו אינם תקינים. נסו לטעון מחדש ולשלוח שוב.',
+      storage_error: 'השרת לא הצליח לשמור את התשובות. נסו שנית מאוחר יותר.',
+    },
+    defaultServerMessage: 'התגובה נקלטה במערכת.',
+    unknownServerMessage: (code) => (code ? `סטטוס שרת: ${code}` : 'התקבלה תגובה מהשרת.'),
+    submissionRetrying: (attempt, total) => `מנסה לשלוח שוב (${attempt}/${total})...`,
   },
   app: {
     loadFailure: 'טעינת הסקר נכשלה.',

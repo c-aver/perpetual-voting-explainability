@@ -260,13 +260,22 @@ def generate_question_triples(count: int = QUESTIONS_PER_REQUEST) -> list[dict[s
     return triples
 
 
+def build_submission_response(result_code: str, status: HTTPStatus, message: str | None = None):
+    payload: dict[str, str] = {
+        'resultCode': result_code,
+    }
+    if message:
+        payload['message'] = message
+    return payload, status
+
+
 @app.route("/submit-response", methods = ['POST'])
 def receive_response():
-    """User posts a survey response to be saved.."""
-    survey_response = request.get_json()
+    """User posts a survey response to be saved."""
+    survey_response = request.get_json(silent=True)
     print("Received survey response: " + str(survey_response))
     if survey_response is None:
-        return "Request body must contain JSON.", HTTPStatus.BAD_REQUEST
+        return build_submission_response('invalid_payload', HTTPStatus.BAD_REQUEST, 'Request body must contain JSON.')
 
     client_ip = extract_client_ip()
     hashed_ip = hash_ip_address(client_ip)
@@ -275,9 +284,9 @@ def receive_response():
         save_response(survey_response, hashed_ip=hashed_ip)
     except StorageError as error:
         app.logger.error("Failed to save survey response.", exc_info=error)
-        return "Failed to persist survey response.", HTTPStatus.INTERNAL_SERVER_ERROR
+        return build_submission_response('storage_error', HTTPStatus.INTERNAL_SERVER_ERROR, 'Failed to persist survey response.')
 
-    return "Submit successful!", HTTPStatus.OK
+    return build_submission_response('success', HTTPStatus.OK)
 
 @app.route('/get-questions', methods=['GET'])
 def get_questions():

@@ -69,6 +69,11 @@ export interface LocalizationBundle {
     serverHeading: string;
     submissionPending: string;
     submissionFailedPrefix: string;
+    submissionFailedMessage: string;
+    serverMessages?: Record<string, string>;
+    defaultServerMessage?: string;
+    unknownServerMessage?(code?: string): string;
+    submissionRetrying?(attempt: number, totalAttempts: number): string;
   };
   app: {
     loadFailure: string;

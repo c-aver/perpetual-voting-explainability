@@ -81,6 +81,7 @@ The loader checks for two optional url parameters:
 
 - `?config=…` — overrides the config URL.
 - `?lang=…` — overrides the chosen language.
+- `?showCompletionPayload=on|off|auto` — controls whether the final summary screen renders the signed submission JSON (`on` re-enables it, `off` hides it, `auto` uses the environment default).
 
 These allow testers to swap configurations quickly without rebuilding the app.
 
@@ -92,6 +93,27 @@ The fallback configuration attempts to pull `texts.csv` from Google Sheets when 
 - `window.__SURVEY_TEXTS_CONFIG__ = { textsSource: 'local' }` — declaring this global before the app bundle runs (for example by adding a small inline script or separate `runtime-config.js` in GitHub Pages) sets a site-wide default without rebuilding. Use `'remote'` or `'auto'` for the other modes.
 
 When the mode resolves to `local`, the app never issues the Google Sheets request, eliminating the startup delay; `remote` guarantees the request is attempted (still falling back to the bundled CSV if it fails).
+
+## Completion Payload Display
+
+By default the post-submission screen hides the JSON payload that used to be echoed into `<code id="survey-complete">`. You can re-enable it through:
+
+- `VITE_SHOW_COMPLETION_PAYLOAD=on|off|auto` — set `on` in `.env.development` to keep the debugging aid locally; omit or set `off` for production builds.
+- `?showCompletionPayload=on|off|auto` — highest-priority override for quick QA links.
+
+Any truthy value (`true`, `1`, case-insensitive) maps to `on`, and falsy values (`false`, `0`) map to `off`. When disabled, the server-response block still appears so participants can see backend acknowledgments.
+
+## Server Response Codes
+
+The backend now returns JSON objects from `/submit-response` with a `resultCode` field (for example, `{ "resultCode": "success" }`). The frontend maps those codes to human-friendly strings through `copy.completion.serverMessages`. To customize the message shown for a given code, add or update entries in that map (per locale). Unknown codes fall back to `completion.unknownServerMessage(code)` if defined, then to `completion.defaultServerMessage`, and finally to the raw body text.
+
+Common codes produced by the server:
+
+- `success` — submission persisted successfully.
+- `invalid_payload` — request body was missing or malformed JSON.
+- `storage_error` — backend failed to write the response to disk.
+
+You can still test alternative flows by mocking responses in development tools or by pointing the survey to another API that uses the same `resultCode` convention.
 
 ## Failure Modes
 
