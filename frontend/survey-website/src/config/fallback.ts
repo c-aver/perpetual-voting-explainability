@@ -142,7 +142,7 @@ const perpetualDemoProps: InstancePagePropsConfig = {
       votes: [
         { voterId: 1, selections: ['A', 'B'] },
         { voterId: 2, selections: ['A', 'B'] },
-        { voterId: 3, selections: ['A'] },
+        { voterId: 3, selections: ['C'] },
       ],
     },
     {
@@ -158,9 +158,9 @@ const perpetualDemoProps: InstancePagePropsConfig = {
       day: 3,
       winner: 'C',
       votes: [
-        { voterId: 1, selections: ['C', 'B'] },
+        { voterId: 1, selections: ['C'] },
         { voterId: 2, selections: ['C'] },
-        { voterId: 3, selections: ['C', 'A'] },
+        { voterId: 3, selections: ['B', 'A'] },
       ],
     },
     {
@@ -168,8 +168,8 @@ const perpetualDemoProps: InstancePagePropsConfig = {
       winner: 'A',
       votes: [
         { voterId: 1, selections: ['A', 'B'] },
-        { voterId: 2, selections: ['A', 'B'] },
-        { voterId: 3, selections: ['A'] },
+        { voterId: 2, selections: ['A'] },
+        { voterId: 3, selections: ['C'] },
       ],
     },
     {
