@@ -1,23 +1,23 @@
 field,text
 mechanicalExplanations:approval,חוק זה בוחר בכל יום את המסעדה שהכי הרבה מצביעים בחרו בה.
 mechanicalExplanations:unit_cost,"חוק זה נותן משקל לכל מצביע, והמסעדה שנבחרת בכל יום היא זו שסכום המשקלים של המצביעים עבורה הוא הגבוה ביותר. בהתחלה המשקל של כל מצביע הוא 1. לאחר שנעשתה הבחירה בכל יום, כל מצביע שאינו מרוצה, כי הוא לא הצביע למסעדה שנבחרה ביום זה, מקבל העלאה של 1 במשקל שלו."
-mechanicalExplanations:equal_shares,"חוק זה צריך לדעת מראש כמה ימי הצבעה יהיו, והוא נעזר ב-2 פרמטרים: k, שזה מספר ימי ההצבעה, ו-n, שזה מספר המצביעים. החוק נותן לכל מצביע תקציב התחלתי של k שקלים. בכל יום המצביעים מנסים ""לקנות"" את המסעדה הרצויה להם, כאשר ""המחיר"" של כל מסעדה הוא n שקלים. המסעדה שנבחרת בכל יום היא זו שלאלו שהצביעו לה יש מספיק תקציב כדי לקנות אותה, וגם כל אחד מהם ישלם כמה שפחות."
-mechanicalExplanations:phragmen,"חוק זה נעזר בפרמטר n, שזה מספר המצביעים. החוק נותן לכל מצביע משקל התחלתי של 0 ק""ג. בכל יום, המצביעים מנסים ""להעמיס"" על עצמם את המשקל של המסעדה הרצויה להם, כאשר ""המשקל"" של כל מסעדה הוא n ק""ג. המסעדה שנבחרת בכל יום היא זו שלאלו שהצביעו לה יש את העומס (המצטבר) הנמוך ביותר."
-introByType:approval,בשאלה זו המנצחים ייבחרו על ידי חוק הבחירות AV.
-introByType:unit_cost,בשאלה זו המנצחים ייבחרו על ידי חוק הבחירות PUC.
-introByType:equal_shares,בשאלה זו המנצחים ייבחרו על ידי חוק הבחירות MES.
-introByType:phragmen,בשאלה זו המנצחים ייבחרו על ידי חוק הבחירות PP.
-instanceRating:prompt,"אחרי שראיתם את כל המנצחים, כמה לדעתכם היו התוצאות הוגנות באופן כללי?"
+mechanicalExplanations:equal_shares,"חוק זה צריך לדעת מראש כמה ימי הצבעה יהיו, והוא נעזר ב-2 פרמטרים: k, שזה מספר ימי ההצבעה, ו-n, שזה מספר המצביעים. החוק נותן לכל מצביע תקציב התחלתי של k שקלים. בכל יום המצביעים מנסים ""לקנות"" את המסעדה הרצויה להם, כאשר ""המחיר"" של כל מסעדה הוא n שקלים. המסעדה שנבחרת בכל יום היא זו שלמצביעים שלה יש מספיק תקציב כדי לקנות אותה, וגם כל אחד מהם ישלם כמה שפחות."
+mechanicalExplanations:phragmen,"חוק זה נעזר בפרמטר n, שזה מספר המצביעים. החוק נותן לכל מצביע משקל התחלתי של 0 ק""ג. בכל יום, המצביעים מנסים ""להעמיס"" על עצמם את המשקל של המסעדה הרצויה להם, כאשר ""המשקל"" של כל מסעדה הוא n ק""ג. המסעדה שנבחרת בכל יום היא זו שלמצביעים שלה לה יש את העומס (המצטבר) הנמוך ביותר."
+introByType:approval,בשאלה זו המנצחים ייבחרו על ידי חוק בחירות בשם AV.
+introByType:unit_cost,בשאלה זו המנצחים ייבחרו על ידי חוק בחירות בשם PUC.
+introByType:equal_shares,בשאלה זו המנצחים ייבחרו על ידי חוק בחירות בשם MES.
+introByType:phragmen,בשאלה זו המנצחים ייבחרו על ידי חוק בחירות בשם PP.
+instanceRating:prompt,"אחרי שראיתם את תוצאות ההצבעה, עד כמה לדעתכם היו תוצאות ההצבעה הוגנות?"
 instanceRating:minLabel,לא הוגנות בכלל
 instanceRating:maxLabel,הוגנות לגמרי
 fallback.pages:intro:title,קבלת החלטות קבוצתית
-fallback.pages:intro:body,"משתתפים יקרים,\n תודה על השתתפותכם במחקר זה!\n\n בשאלון הבא תתבקשו להביע את דעתכם בנוגע להוגנות בקבלת החלטות בקבוצה.\n מילוי השאלון לוקח כ-7 דק' והוא איננו דורש ידע מוקדם. \n השאלון אנונימי לחלוטין ותשובותיכם ישמשו לצרכי מחקר בלבד. המחקר אושר על ידי ועדת האתיקה של אוני' אריאל ומנוהל ע""י פרופ' נועם חזון."
+fallback.pages:intro:body,"משתתפים יקרים,\n תודה על השתתפותכם במחקר זה!\n\n בשאלון הבא תתבקשו להביע את דעתכם בנוגע להוגנות בקבלת החלטות בקבוצה.\n מילוי השאלון לוקח כ-7 דק' והוא איננו דורש ידע מוקדם. \n השאלון אנונימי לחלוטין ותשובותיכם ישמשו לצרכי מחקר בלבד. בסוף השאלון תוכלו להירשם להגרלה על כרטיס בשווי 200 ש""ח. \n\n המחקר אושר על ידי ועדת האתיקה של אוני' אריאל ומנוהל ע""י פרופ' נועם חזון (אוניברסיטת אריאל) ופרופ' קובי גל (אוניברסיטת בן-גוריון)."
 fallback.pages:intro:footnote,
-fallback.pages:overview:title,שאלות
-fallback.pages:overview:body,"בשאלות הבאות תראו תרחישים שונים, כל אחד משתמש בחוק שונה על מנת לבחור את המנצח, דרגו את ההוגנות לפי דעתכם.\nהסטודנטים סומכים עליכם!\nבהצלחה."
+fallback.pages:overview:title,ניסוי
+fallback.pages:overview:body,כעת נציג לכם מספר תרחישים שונים. כל תרחיש משתמש בחוק שונה על מנת לבחור את המנצח בכל יום. דרגו את ההוגנות לפי דעתכם.\nבהצלחה.
 fallback.pages:overview:footnote,
-fallback.pages:feedback:prompt,נשמח למשוב בנוגע לסקר.
-fallback.pages:feedback:helperText,"פרטו מעט או הרבה ככל שתרצו, נשתמש במשוב זה על מנת לבחון את תוצאות הסקר."
+fallback.pages:feedback:prompt,נשמח למשוב בנוגע לסקר
+fallback.pages:feedback:helperText,פרטו ככל שתרצו. אין חובה לענות על שאלה זו.
 fallback.pages:feedback:placeholder,חווייתי בסקר הייתה...
 fallback.pages:demographic:title,פרטים דמוגרפיים
 fallback.pages:demographic:description,כמה שאלות לפני שנתחיל:
@@ -35,7 +35,7 @@ fallback.pages:demographic:questions:education:option:postgrad,תואר שני �
 fallback.pages:demographic:questions:age:prompt,גיל
 fallback.pages:demographic:questions:age:meta:label,גיל המשתתף
 fallback.pages:quiz:title,בדיקת ידע קצרה
-fallback.pages:quiz:description,לפני שנתקדם בואו נוודא שהבנתם את ההנחיות...\nניתן לחזור בכל עת לעמוד הקודם על מנת לראות את הדוגמה.
+fallback.pages:quiz:description,לפני שנתקדם בואו נוודא שהבנתם את ההנחיות...\nאנא ענו על השאלות לפי ההוראות שקראתם והתרחיש הבא:
 fallback.pages:quiz:attemptsLabel,ניסיונות לא מוצלחים:
 fallback.pages:quiz:questions:day-4-winner:prompt,איזו אפשרות ניצחה ביום 4?
 fallback.pages:quiz:questions:day-4-winner:placeholder,בחרו את האפשרות המתאימה
@@ -46,15 +46,17 @@ fallback.pages:quiz:questions:voter-3-satisfied:prompt,האם מצביע 3 מר�
 fallback.pages:quiz:questions:voter-3-satisfied:placeholder,בחרו כן או לא
 fallback.pages:quiz:questions:voter-3-satisfied:option:y,כן
 fallback.pages:quiz:questions:voter-3-satisfied:option:n,לא
-fallback.pages:quiz:questions:voter-1-satisfied:prompt,האם מצביע 1 מרוצה מהתוצאה ביום 3?
+fallback.pages:quiz:questions:coalition:prompt,האם מצביעים 1 ו-2 מרוצים מהתוצאות בימים 1 ו-3?
+fallback.pages:quiz:questions:coalition:placeholder,בחרו כן או לא
+fallback.pages:quiz:questions:coalition:option:y,כן
+fallback.pages:quiz:questions:coalition:option:n,לא
+fallback.pages:quiz:questions:voter-1-satisfied:prompt,האם מצביע 1 מרוצה מהתוצאה ביום 4?
 fallback.pages:quiz:questions:voter-1-satisfied:placeholder,בחרו כן או לא
 fallback.pages:quiz:questions:voter-1-satisfied:option:y,כן
 fallback.pages:quiz:questions:voter-1-satisfied:option:n,לא
 fallback.pages:quiz:questions:number-of-winners:prompt,כמה מסעדות יכולות לנצח בכל יום?
 fallback.pages:quiz:questions:number-of-winners:help,
-fallback.pages:quiz:questions:term:prompt,"מה משמעות המונח ""perpetual"" בהקשר של הסקר?"
-fallback.pages:quiz:questions:term:placeholder,בחרו תשובה
-fallback.pages:perpetual-demo:title,הנחיות המחקר
+fallback.pages:perpetual-demo:title,הנחיות
 fallback.pages:perpetual-demo:introText,"במחקר זה עליכם לענות על 4 שאלות קצרות, אך עליכם לקרוא קודם את ההנחיות. אנא קראו אותן בעיון.\n\nהנכם נדרשים לסייע לקבוצות סטודנטים לקבל החלטות משותפות.\nקבוצת הסטודנטים לומדת יום-יום לקראת בחינה יחדיו והם מעוניינים להזמין אוכל בכל יום מימי הלמידה. כדי לקצר את זמני ההפסקות שלהם, הם מעוניינים להזמין אוכל *ממסעדה אחת בלבד* בכל יום.\nלצורך קבלת ההחלטה בכל יום, כל סטודנט מסמן בטופס ההצבעה מאילו מסעדות הוא היה מעוניין להזמין אוכל. לאחר מכן הסטודנטים משתמשים בחוק בחירות שמחליט מי המסעדה הנבחרת לאותו יום.\n\nלדוגמה, נניח שההצבעות של הסטודנטים ביום הראשון הן כפי שמתואר בטבלה הבאה:\n(לחצו על הכפתור למטה על מנת להתקדם)"
 fallback.pages:perpetual-demo:voters:1:label,מצביע 1
 fallback.pages:perpetual-demo:voters:2:label,מצביע 2
@@ -65,10 +67,13 @@ fallback.pages:perpetual-demo:explanations:2,
 fallback.pages:perpetual-demo:explanations:3,
 fallback.pages:perpetual-demo:explanations:4,
 fallback.pages:perpetual-demo:explanations:5,
-fallback.pages:perpetual-demo:rating:prompt,"לאחר שראיתם את כל ההצבעות ואת מה שחוק הבחירות החליט בכל יום, עליכם לדרג את ההוגנות של חוק הבחירות בסולם של 1 (כלל לא הוגן) עד 7 (הוגן לגמרי).\nנסו לדרג עכשיו:"
-fallback.pages:perpetual-demo:rating:minLabel,לא הוגנת בכלל
-fallback.pages:perpetual-demo:rating:maxLabel,הוגנת לגמרי
+fallback.pages:perpetual-demo:rating:prompt,"לאחר שראיתם את כל ההצבעות ואת מה שחוק הבחירות החליט בכל יום, עליכם לדרג את תוצאות ההצבעה בסולם של 1 (לא הוגנות בכלל) עד 7 (הוגנות לגמרי).\nנסו לדרג עכשיו:"
+fallback.pages:perpetual-demo:rating:minLabel,לא הוגנות בכלל
+fallback.pages:perpetual-demo:rating:maxLabel,הוגנות לגמרי
 fallback.pages:thank-you:title,תודה רבה!
-fallback.pages:thank-you:body,"תודה לכם על ההשתפות, התוצאות ישומשו למחקר.\nאנא לחצו על ""שליחה"" על מנת לסיים."
-fallback.pages:thank-you:footnote,
+fallback.pages:thank-you:description,"תודה לכם על ההשתפות, התוצאות ישומשו למחקר.\nאנא לחצו על ""שליחה"" על מנת לסיים.\n\nהשאלון הינו אנונימי, אם תרצו להשתתף בהגרלה אנא מלאו את פרטיכם."
+fallback.pages:thank-you:questions:name:prompt,שם מלא:
+fallback.pages:thank-you:questions:name:placeholder,אופציונלי
+fallback.pages:thank-you:questions:email:prompt,כתובת אימייל:
+fallback.pages:thank-you:questions:email:placeholder,אופציונלי
 fallback.pages:instance:title,שאלה
