@@ -1,4 +1,4 @@
-import type { InstanceDayConfig, InstancePagePropsConfig, SurveyConfig, SurveyPageConfig } from './types.ts';
+import type { InstanceDayConfig, InstancePagePropsConfig, SurveyConfig, SurveyPageConfig, SurveySettings } from './types.ts';
 import { resolveQuestionOrderEndpoint } from './api-endpoints.ts';
 import {
   instanceBasedExplanations,
@@ -8,6 +8,24 @@ import {
 import textsCsv from './texts.csv?raw';
 
 const TEXTS_CSV_URL = import.meta.env.VITE_TEXTS_CSV_URL;
+const questionOrderingSource = resolveQuestionOrderEndpoint();
+
+const instanceIds = ['simple', 'complicated', 'few_rounds'];
+const ruleIds = ['approval', 'unit_cost', 'equal_shares', 'phragmen'];
+const explanationIds = ['none', 'mechanical', 'instance_based'];
+
+export const fallbackSurveySettings: SurveySettings = {
+  showProgress: true,
+  storageKey: 'perpetual-voting-survey',
+  storageVersion: 'v2',
+  direction: 'auto',
+  autosaveKeysToClear: ['survey-open-response'],
+  language: 'he-IL',
+  pageSequenceSource: questionOrderingSource,
+};
+
+let cachedTexts: Record<string, string> | undefined;
+let cachedSurveyConfig: SurveyConfig | undefined;
 
 function normalizeCsvUrl(url: string): string {
   if (!url || !url.includes('docs.google.com/spreadsheets')) {
@@ -75,7 +93,7 @@ function buildTextLookup(source: string): Record<string, string> {
 
 async function loadTextsCsv(): Promise<string> {
   if (!TEXTS_CSV_URL) {
-    console.log("No CSV URL, loading from local...");
+    console.log('No CSV URL, loading from local...');
     return textsCsv;
   }
   if (typeof fetch !== 'function') {
@@ -87,7 +105,7 @@ async function loadTextsCsv(): Promise<string> {
     if (!response.ok) {
       throw new Error(`Failed to fetch texts CSV: ${response.status} ${response.statusText}`);
     }
-    console.log("Got CSV response!");
+    console.log('Got CSV response!');
     return await response.text();
   } catch (error) {
     console.warn('Unable to load remote texts CSV, falling back to bundled copy.', error);
@@ -95,135 +113,13 @@ async function loadTextsCsv(): Promise<string> {
   }
 }
 
-const texts = buildTextLookup(await loadTextsCsv());
-
-const questionOrderingSource = resolveQuestionOrderEndpoint();
-
-const instanceIds = [
-  'simple',
-  'complicated',
-  'few_rounds'
-]
-
-const ruleIds = [
-  'approval',
-  'unit_cost',
-  'equal_shares',
-  'phragmen'
-]
-
-const explanationIds = [
-  'none',
-  'mechanical',
-  'instance_based'
-]
-
-const perpetualDemoProps: InstancePagePropsConfig = {
-  title: texts['fallback.pages:perpetual-demo:title'],
-  introText: texts['fallback.pages:perpetual-demo:introText'],
-  showResultsExplanation: true,
-  voters: [
-    { id: 1, label: texts['fallback.pages:perpetual-demo:voters:1:label'] },
-    { id: 2, label: texts['fallback.pages:perpetual-demo:voters:2:label'] },
-    { id: 3, label: texts['fallback.pages:perpetual-demo:voters:3:label'] },
-  ],
-  explanations: [
-    texts['fallback.pages:perpetual-demo:explanations:0'],
-    texts['fallback.pages:perpetual-demo:explanations:1'],
-    texts['fallback.pages:perpetual-demo:explanations:2'],
-    texts['fallback.pages:perpetual-demo:explanations:3'],
-    texts['fallback.pages:perpetual-demo:explanations:4'],
-    texts['fallback.pages:perpetual-demo:explanations:5'],
-  ],
-  days: [
-    {
-      day: 1,
-      winner: 'A',
-      votes: [
-        { voterId: 1, selections: ['A', 'B'] },
-        { voterId: 2, selections: ['A', 'B'] },
-        { voterId: 3, selections: ['C'] },
-      ],
-    },
-    {
-      day: 2,
-      winner: 'B',
-      votes: [
-        { voterId: 1, selections: ['B', 'C'] },
-        { voterId: 2, selections: ['B'] },
-        { voterId: 3, selections: ['C', 'A'] },
-      ],
-    },
-    {
-      day: 3,
-      winner: 'C',
-      votes: [
-        { voterId: 1, selections: ['C'] },
-        { voterId: 2, selections: ['C'] },
-        { voterId: 3, selections: ['B', 'A'] },
-      ],
-    },
-    {
-      day: 4,
-      winner: 'A',
-      votes: [
-        { voterId: 1, selections: ['A', 'B'] },
-        { voterId: 2, selections: ['A'] },
-        { voterId: 3, selections: ['C'] },
-      ],
-    },
-    {
-      day: 5,
-      winner: 'B',
-      votes: [
-        { voterId: 1, selections: ['B', 'C'] },
-        { voterId: 2, selections: ['B'] },
-        { voterId: 3, selections: ['C', 'A'] },
-      ],
-    },
-    {
-      day: 6,
-      winner: 'C',
-      votes: [
-        { voterId: 1, selections: ['C', 'B'] },
-        { voterId: 2, selections: ['C'] },
-        { voterId: 3, selections: ['C', 'A'] },
-      ],
-    },
-  ],
-  rating: {
-    scaleSize: 7,
-    prompt: texts['fallback.pages:perpetual-demo:rating:prompt'],
-    minLabel: texts['fallback.pages:perpetual-demo:rating:minLabel'],
-    maxLabel: texts['fallback.pages:perpetual-demo:rating:maxLabel'],
-  },
-};
-
-const mechanicalExplanations: Record<string, string> = {
-  'approval': texts['mechanicalExplanations:approval'],
-  'unit_cost': texts['mechanicalExplanations:unit_cost'],
-  'equal_shares': texts['mechanicalExplanations:equal_shares'],
-  'phragmen': texts['mechanicalExplanations:phragmen'],
-};
-
-
-const introByType: Record<string, string> = {
-  'approval': texts['introByType:approval'],
-  'unit_cost': texts['introByType:unit_cost'],
-  'equal_shares': texts['introByType:equal_shares'],
-  'phragmen': texts['introByType:phragmen'],
-}
-
-const instanceRatingCopy = {
-  prompt: texts['instanceRating:prompt'],
-  minLabel: texts['instanceRating:minLabel'],
-  maxLabel: texts['instanceRating:maxLabel'],
-};
-
-const ruleExplanationByType: Record<string, Record<string, string> | undefined> = {
-  'none': undefined,
-  'mechanical': mechanicalExplanations,
-  'instance_based': mechanicalExplanations,
+export async function loadSurveyTexts(): Promise<Record<string, string>> {
+  if (cachedTexts) {
+    return cachedTexts;
+  }
+  const csv = await loadTextsCsv();
+  cachedTexts = buildTextLookup(csv);
+  return cachedTexts;
 }
 
 function resolveInstanceDays(instanceId: string, ruleId: string): InstanceDayConfig[] {
@@ -242,19 +138,129 @@ function shouldShowResultsExplanation(explanationId: string, explanations?: stri
   return wantsExplanation && Boolean(explanations && explanations.length > 0);
 }
 
-function createInstancePages(): SurveyPageConfig[] {
-  let result: SurveyPageConfig[] = [];
+function buildPerpetualDemoProps(texts: Record<string, string>): InstancePagePropsConfig {
+  return {
+    title: texts['fallback.pages:perpetual-demo:title'],
+    introText: texts['fallback.pages:perpetual-demo:introText'],
+    showResultsExplanation: true,
+    voters: [
+      { id: 1, label: texts['fallback.pages:perpetual-demo:voters:1:label'] },
+      { id: 2, label: texts['fallback.pages:perpetual-demo:voters:2:label'] },
+      { id: 3, label: texts['fallback.pages:perpetual-demo:voters:3:label'] },
+    ],
+    explanations: [
+      texts['fallback.pages:perpetual-demo:explanations:0'],
+      texts['fallback.pages:perpetual-demo:explanations:1'],
+      texts['fallback.pages:perpetual-demo:explanations:2'],
+      texts['fallback.pages:perpetual-demo:explanations:3'],
+      texts['fallback.pages:perpetual-demo:explanations:4'],
+      texts['fallback.pages:perpetual-demo:explanations:5'],
+    ],
+    days: [
+      {
+        day: 1,
+        winner: 'A',
+        votes: [
+          { voterId: 1, selections: ['A', 'B'] },
+          { voterId: 2, selections: ['A', 'B'] },
+          { voterId: 3, selections: ['C'] },
+        ],
+      },
+      {
+        day: 2,
+        winner: 'B',
+        votes: [
+          { voterId: 1, selections: ['B', 'C'] },
+          { voterId: 2, selections: ['B'] },
+          { voterId: 3, selections: ['C', 'A'] },
+        ],
+      },
+      {
+        day: 3,
+        winner: 'C',
+        votes: [
+          { voterId: 1, selections: ['C', 'B'] },
+          { voterId: 2, selections: ['C'] },
+          { voterId: 3, selections: ['B', 'A'] },
+        ],
+      },
+      {
+        day: 4,
+        winner: 'A',
+        votes: [
+          { voterId: 1, selections: ['A', 'B'] },
+          { voterId: 2, selections: ['A'] },
+          { voterId: 3, selections: ['C'] },
+        ],
+      },
+      {
+        day: 5,
+        winner: 'B',
+        votes: [
+          { voterId: 1, selections: ['B', 'C'] },
+          { voterId: 2, selections: ['B'] },
+          { voterId: 3, selections: ['C', 'A'] },
+        ],
+      },
+      {
+        day: 6,
+        winner: 'C',
+        votes: [
+          { voterId: 1, selections: ['C', 'B'] },
+          { voterId: 2, selections: ['C'] },
+          { voterId: 3, selections: ['C', 'A'] },
+        ],
+      },
+    ],
+    rating: {
+      scaleSize: 7,
+      prompt: texts['fallback.pages:perpetual-demo:rating:prompt'],
+      minLabel: texts['fallback.pages:perpetual-demo:rating:minLabel'],
+      maxLabel: texts['fallback.pages:perpetual-demo:rating:maxLabel'],
+    },
+  };
+}
+
+function createInstancePages(texts: Record<string, string>): SurveyPageConfig[] {
+  const mechanicalExplanations: Record<string, string> = {
+    approval: texts['mechanicalExplanations:approval'],
+    unit_cost: texts['mechanicalExplanations:unit_cost'],
+    equal_shares: texts['mechanicalExplanations:equal_shares'],
+    phragmen: texts['mechanicalExplanations:phragmen'],
+  };
+
+  const introByType: Record<string, string> = {
+    approval: texts['introByType:approval'],
+    unit_cost: texts['introByType:unit_cost'],
+    equal_shares: texts['introByType:equal_shares'],
+    phragmen: texts['introByType:phragmen'],
+  };
+
+  const instanceRatingCopy = {
+    prompt: texts['instanceRating:prompt'],
+    minLabel: texts['instanceRating:minLabel'],
+    maxLabel: texts['instanceRating:maxLabel'],
+  };
+
+  const ruleExplanationByType: Record<string, Record<string, string> | undefined> = {
+    none: undefined,
+    mechanical: mechanicalExplanations,
+    instance_based: mechanicalExplanations,
+  };
+
+  const pages: SurveyPageConfig[] = [];
+
   for (const instanceId of instanceIds) {
     for (const ruleId of ruleIds) {
       for (const explanationId of explanationIds) {
         const days = resolveInstanceDays(instanceId, ruleId);
         const explanations = resolveInstanceExplanations(instanceId, ruleId, explanationId);
-        result.push({
+        pages.push({
           type: 'instance',
           id: `instance-${instanceId}-${ruleId}-${explanationId}`,
           props: {
             title: texts['fallback.pages:instance:title'],
-            introText: introByType[ruleId] + (ruleExplanationByType[explanationId] ? '\n' : '') + (ruleExplanationByType[explanationId]?.[ruleId] ?? ""),
+            introText: `${introByType[ruleId]}${ruleExplanationByType[explanationId] ? '\n' : ''}${ruleExplanationByType[explanationId]?.[ruleId] ?? ''}`,
             showResultsExplanation: shouldShowResultsExplanation(explanationId, explanations),
             voters: instanceVoters[instanceId] ?? [],
             explanations,
@@ -266,28 +272,17 @@ function createInstancePages(): SurveyPageConfig[] {
               maxLabel: instanceRatingCopy.maxLabel,
             },
           },
-        })
+        });
       }
     }
   }
-  return result;
+
+  return pages;
 }
 
-/**
- * Embedded configuration used when remote survey loading fails or is unavailable.
- */
-export const fallbackSurveyConfig: SurveyConfig = {
-  version: 'beta-1',
-  settings: {
-    showProgress: true,
-    storageKey: 'perpetual-voting-survey',
-    storageVersion: 'v2',
-    direction: 'auto',
-    autosaveKeysToClear: ['survey-open-response'],
-    language: 'he-IL',
-    pageSequenceSource: questionOrderingSource,
-  },
-  pages: [
+function createBasePages(texts: Record<string, string>): SurveyPageConfig[] {
+  const perpetualDemoProps = buildPerpetualDemoProps(texts);
+  const pages: SurveyPageConfig[] = [
     {
       type: 'text',
       id: 'intro',
@@ -350,7 +345,7 @@ export const fallbackSurveyConfig: SurveyConfig = {
               { value: 'highschool', label: texts['fallback.pages:demographic:questions:education:option:highschool'] },
               { value: 'student', label: texts['fallback.pages:demographic:questions:education:option:student'] },
               { value: 'graduate', label: texts['fallback.pages:demographic:questions:education:option:graduate'] },
-              { value: 'postgrad', label: texts['fallback.pages:demographic:questions:education:option:postgrad'] ?? 'תואר שני ומעלה' }
+              { value: 'postgrad', label: texts['fallback.pages:demographic:questions:education:option:postgrad'] ?? 'תואר שני ומעלה' },
             ],
             outputKey: ['education'],
           },
@@ -482,6 +477,31 @@ export const fallbackSurveyConfig: SurveyConfig = {
         ],
       },
     },
-    ...createInstancePages(),
-  ],
-};
+  ];
+
+  pages.push(...createInstancePages(texts));
+
+  return pages;
+}
+
+export function createFallbackSurveyConfig(texts: Record<string, string>): SurveyConfig {
+  return {
+    version: 'beta-1',
+    settings: fallbackSurveySettings,
+    pages: createBasePages(texts),
+  };
+}
+
+export async function loadFallbackSurveyConfig(): Promise<SurveyConfig> {
+  if (cachedSurveyConfig) {
+    return cachedSurveyConfig;
+  }
+  const texts = await loadSurveyTexts();
+  cachedSurveyConfig = createFallbackSurveyConfig(texts);
+  return cachedSurveyConfig;
+}
+
+export function resetFallbackSurveyCaches(): void {
+  cachedSurveyConfig = undefined;
+  cachedTexts = undefined;
+}

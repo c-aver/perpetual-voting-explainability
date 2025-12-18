@@ -2,29 +2,33 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadSurveyConfig } from './loader.ts';
-import { fallbackSurveyConfig } from './fallback.ts';
-import type { InstancePagePropsConfig, SurveyPageConfig } from './types.ts';
+import { fallbackSurveySettings, loadFallbackSurveyConfig, resetFallbackSurveyCaches } from './fallback.ts';
+import type { InstancePagePropsConfig, SurveySettings } from './types.ts';
 import { resolveQuestionOrderEndpoint } from './api-endpoints.ts';
 
 describe('loadSurveyConfig', () => {
-  let pagesSnapshot: SurveyPageConfig[];
-  let settingsSnapshot: typeof fallbackSurveyConfig.settings;
+  let settingsSnapshot: SurveySettings;
   let originalFetch: typeof fetch | undefined;
+  let defaultPageIds: string[];
   const defaultOrderingEndpoint = resolveQuestionOrderEndpoint();
 
-  beforeEach(() => {
-    pagesSnapshot = [...fallbackSurveyConfig.pages];
-    settingsSnapshot = { ...fallbackSurveyConfig.settings };
+  beforeEach(async () => {
+    settingsSnapshot = { ...fallbackSurveySettings };
+    resetFallbackSurveyCaches();
+    const config = await loadFallbackSurveyConfig();
+    defaultPageIds = config.pages
+      .map((page) => page.id)
+      .filter((id): id is string => Boolean(id));
     originalFetch = globalThis.fetch;
-    globalThis.fetch = createDefaultOrderingFetch(defaultOrderingEndpoint);
+    globalThis.fetch = createDefaultOrderingFetch(defaultOrderingEndpoint, defaultPageIds);
     if (typeof localStorage !== 'undefined') {
       localStorage.clear();
     }
   });
 
   afterEach(() => {
-    fallbackSurveyConfig.pages = pagesSnapshot;
-    fallbackSurveyConfig.settings = { ...settingsSnapshot };
+    Object.assign(fallbackSurveySettings, settingsSnapshot);
+    resetFallbackSurveyCaches();
     if (originalFetch)
       globalThis.fetch = originalFetch;
     if (typeof localStorage !== 'undefined') {
@@ -55,10 +59,8 @@ describe('loadSurveyConfig', () => {
 
   it('applies backend ordering when the endpoint returns IDs', async () => {
     const orderingUrl = 'https://example.test/order.json';
-    fallbackSurveyConfig.settings = {
-      ...settingsSnapshot,
-      pageSequenceSource: orderingUrl,
-    };
+    fallbackSurveySettings.pageSequenceSource = orderingUrl;
+    resetFallbackSurveyCaches();
 
     const orderingPayload = {
       pageIds: ['thank-you', 'intro'],
@@ -83,10 +85,8 @@ describe('loadSurveyConfig', () => {
 
   it('falls back to curated instance ordering when the endpoint fails', async () => {
     const orderingUrl = 'https://example.test/broken-order.json';
-    fallbackSurveyConfig.settings = {
-      ...settingsSnapshot,
-      pageSequenceSource: orderingUrl,
-    };
+    fallbackSurveySettings.pageSequenceSource = orderingUrl;
+    resetFallbackSurveyCaches();
 
     const fetchImpl = vi.fn(async () => new Response('nope', { status: 500 }));
 
@@ -109,10 +109,8 @@ describe('loadSurveyConfig', () => {
   });
 
   it('uses curated fallback ordering when no backend ordering source is configured', async () => {
-    fallbackSurveyConfig.settings = {
-      ...settingsSnapshot,
-      pageSequenceSource: undefined,
-    };
+    fallbackSurveySettings.pageSequenceSource = undefined;
+    resetFallbackSurveyCaches();
 
     const result = await loadSurveyConfig();
     expect(result.pages).toHaveLength(11);
@@ -131,12 +129,10 @@ describe('loadSurveyConfig', () => {
 
   it('reuses persisted ordering when fallback ordering is triggered', async () => {
     const orderingUrl = 'https://example.test/offline-order.json';
-    fallbackSurveyConfig.settings = {
-      ...settingsSnapshot,
-      pageSequenceSource: orderingUrl,
-    };
+    fallbackSurveySettings.pageSequenceSource = orderingUrl;
+    resetFallbackSurveyCaches();
 
-    const storageKey = fallbackSurveyConfig.settings.storageKey;
+    const storageKey = fallbackSurveySettings.storageKey;
     if (!storageKey) {
       throw new Error('Test requires storageKey');
     }
@@ -173,15 +169,13 @@ describe('loadSurveyConfig', () => {
 
   it('persists generated fallback ordering for future reloads', async () => {
     const orderingUrl = 'https://example.test/persist-order.json';
-    fallbackSurveyConfig.settings = {
-      ...settingsSnapshot,
-      pageSequenceSource: orderingUrl,
-    };
+    fallbackSurveySettings.pageSequenceSource = orderingUrl;
+    resetFallbackSurveyCaches();
 
     const fetchImpl = vi.fn(async () => new Response('nope', { status: 500 }));
 
     const result = await loadSurveyConfig({ fetchImpl });
-    const storageKey = fallbackSurveyConfig.settings.storageKey;
+    const storageKey = fallbackSurveySettings.storageKey;
     if (!storageKey) {
       throw new Error('Test requires storageKey');
     }
@@ -192,12 +186,10 @@ describe('loadSurveyConfig', () => {
   });
 
   it('reuses persisted ordering even when no backend ordering source exists', async () => {
-    fallbackSurveyConfig.settings = {
-      ...settingsSnapshot,
-      pageSequenceSource: undefined,
-    };
+    fallbackSurveySettings.pageSequenceSource = undefined;
+    resetFallbackSurveyCaches();
 
-    const storageKey = fallbackSurveyConfig.settings.storageKey;
+    const storageKey = fallbackSurveySettings.storageKey;
     if (!storageKey) {
       throw new Error('Test requires storageKey');
     }
@@ -230,13 +222,10 @@ describe('loadSurveyConfig', () => {
 
 });
 
-function createDefaultOrderingFetch(orderingEndpoint: string): typeof fetch {
+function createDefaultOrderingFetch(orderingEndpoint: string, pageIds: string[]): typeof fetch {
   const mock = vi.fn(async (input: RequestInfo | URL) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
     if (url === orderingEndpoint) {
-      const pageIds = fallbackSurveyConfig.pages
-        .map((page) => page.id)
-        .filter((id): id is string => Boolean(id));
       return new Response(JSON.stringify({ pageIds }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },

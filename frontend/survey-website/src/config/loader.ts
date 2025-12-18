@@ -1,4 +1,4 @@
-import { fallbackSurveyConfig } from './fallback.ts';
+import { fallbackSurveySettings, loadFallbackSurveyConfig } from './fallback.ts';
 import { resolveCopyCatalog } from './copy.ts';
 import type {
   DirectionSetting,
@@ -40,15 +40,36 @@ export async function loadSurveyConfig(
 
   const languageParam = searchParams?.get('lang')?.trim();
   const languageOverride = languageParam && languageParam.length > 0 ? languageParam : options.language;
-  const config = fallbackSurveyConfig;
+
+  const configPromise = loadFallbackSurveyConfig();
+  const fallbackStorageKey = fallbackSurveySettings.storageKey;
+  const cachedPersistedOrder = readPersistedPageOrder(fallbackStorageKey);
+  const shouldPrefetchOrdering = !cachedPersistedOrder;
+  const earlyOrderingPromise = shouldPrefetchOrdering
+    ? fetchBackendOrdering(fallbackSurveySettings, fetcher)
+    : undefined;
+  const config = await configPromise;
 
   const resolvedPages = await resolvePageConfigs(config.pages);
   const storageKey = config.settings?.storageKey;
   const storageVersion = config.settings?.storageVersion;
-  const persistedOrder = readPersistedPageOrder(storageKey);
+  const persistedOrder = storageKey && storageKey !== fallbackStorageKey
+    ? readPersistedPageOrder(storageKey)
+    : cachedPersistedOrder;
   const persistedPages = resolvePersistedOrder(resolvedPages, persistedOrder);
+  const needsBackendOrdering = !persistedPages;
+  const orderingPromise = needsBackendOrdering
+    ? (config.settings?.pageSequenceSource === fallbackSurveySettings.pageSequenceSource
+      ? (earlyOrderingPromise ?? fetchBackendOrdering(config.settings, fetcher))
+      : fetchBackendOrdering(config.settings, fetcher))
+    : undefined;
+  const resolvedOrderingIds = orderingPromise ? await orderingPromise : undefined;
+  const backendOrderedPages = resolvedOrderingIds
+    ? applyBackendOrderingResult(resolvedPages, resolvedOrderingIds)
+    : undefined;
   const orderedPages = persistedPages
-    ?? await applyBackendOrdering(resolvedPages, config.settings, fetcher);
+    ?? backendOrderedPages
+    ?? buildOrderingFailureFallback(resolvedPages);
   annotateInstanceQuestionNumbers(orderedPages);
   persistPageOrderSnapshot(storageKey, storageVersion, orderedPages);
 
@@ -70,7 +91,7 @@ export async function loadSurveyConfig(
 async function resolvePageConfigs(
   pages: SurveyPageConfig[],
 ): Promise<PageDescriptor[]> {
-  const sourcePages = !pages || pages.length === 0 ? fallbackSurveyConfig.pages : pages;
+  const sourcePages = Array.isArray(pages) ? pages : [];
   const resolved: PageDescriptor[] = [];
 
   for (const descriptor of sourcePages) {
@@ -100,32 +121,31 @@ async function resolvePageConfigs(
  * Applies backend-provided page ordering instructions when they are available; otherwise,
  * preserves the original descriptor sequence.
  */
-async function applyBackendOrdering(
-  pages: PageDescriptor[],
+async function fetchBackendOrdering(
   settings?: SurveySettings,
   fetcher?: typeof fetch,
-): Promise<PageDescriptor[]> {
+): Promise<string[] | undefined> {
   const source = settings?.pageSequenceSource;
   if (!source) {
-    return buildOrderingFailureFallback(pages);
+    return undefined;
   }
 
   if (!fetcher) {
     console.warn('Page ordering requested without a fetch implementation; using fallback.');
-    return buildOrderingFailureFallback(pages);
+    return undefined;
   }
 
   const resolvedUrl = resolveChildUrl(source);
   if (!resolvedUrl) {
-        console.warn('Unable to resolve page ordering URL; using fallback ordering.');
-        return buildOrderingFailureFallback(pages);
+    console.warn('Unable to resolve page ordering URL; using fallback ordering.');
+    return undefined;
   }
 
   try {
     const response = await fetcher(resolvedUrl.toString(), { cache: 'no-store' });
     if (!response.ok) {
       console.warn(`Page ordering request failed (${response.status}). Using fallback ordering.`);
-      return buildOrderingFailureFallback(pages);
+      return undefined;
     }
 
     const payload = await response.json();
@@ -138,23 +158,34 @@ async function applyBackendOrdering(
 
     if (!pageIds || pageIds.length === 0) {
       console.warn('Page ordering payload missing "pageIds"; using fallback ordering.');
-      return buildOrderingFailureFallback(pages);
+      return undefined;
     }
 
-    const ordered: PageDescriptor[] = [];
-
-    for (const id of pageIds) {
-      const page = pages.find((descriptor) => descriptor.id === id);
-      if (page) {
-        ordered.push(page);
-      }
-    }
-
-    return ordered;
+    return pageIds;
   } catch (error) {
     console.warn('Failed to load backend page ordering. Using fallback ordering.', error);
-    return buildOrderingFailureFallback(pages);
+    return undefined;
   }
+}
+
+function applyBackendOrderingResult(
+  pages: PageDescriptor[],
+  pageIds: string[],
+): PageDescriptor[] | undefined {
+  if (!pageIds || pageIds.length === 0) {
+    return undefined;
+  }
+
+  const ordered: PageDescriptor[] = [];
+
+  for (const id of pageIds) {
+    const page = pages.find((descriptor) => descriptor.id === id);
+    if (page) {
+      ordered.push(page);
+    }
+  }
+
+  return ordered.length > 0 ? ordered : undefined;
 }
 
 /**
