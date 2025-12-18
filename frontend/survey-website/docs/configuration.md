@@ -84,6 +84,15 @@ The loader checks for two optional url parameters:
 
 These allow testers to swap configurations quickly without rebuilding the app.
 
+## Texts CSV Source Overrides
+
+The fallback configuration attempts to pull `texts.csv` from Google Sheets when `VITE_TEXTS_CSV_URL` is defined, but you can now control that behaviour at runtime:
+
+- `?textsSource=local | remote | auto` — forces the bundled CSV (`local`), always fetches the remote URL (`remote`), or keeps the default fallback logic (`auto`). The selected value is persisted to `localStorage` so you can share a single link (for example, `https://…?textsSource=local`) and subsequent reloads keep the same mode.
+- `window.__SURVEY_TEXTS_CONFIG__ = { textsSource: 'local' }` — declaring this global before the app bundle runs (for example by adding a small inline script or separate `runtime-config.js` in GitHub Pages) sets a site-wide default without rebuilding. Use `'remote'` or `'auto'` for the other modes.
+
+When the mode resolves to `local`, the app never issues the Google Sheets request, eliminating the startup delay; `remote` guarantees the request is attempted (still falling back to the bundled CSV if it fails).
+
 ## Failure Modes
 
 - **Network Errors / Non-200 Responses** — fall back to the embedded configuration and log a warning.

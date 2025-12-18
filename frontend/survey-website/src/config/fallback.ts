@@ -26,6 +26,97 @@ export const fallbackSurveySettings: SurveySettings = {
 
 let cachedTexts: Record<string, string> | undefined;
 let cachedSurveyConfig: SurveyConfig | undefined;
+type TextsSourceMode = 'auto' | 'remote' | 'local';
+const TEXTS_SOURCE_QUERY_PARAM = 'textsSource';
+const TEXTS_SOURCE_STORAGE_KEY = 'perpetual-texts-source-mode';
+type SurveyTextsRuntimeConfig = {
+  textsSource?: string;
+};
+type GlobalWithSurveyTextsConfig = typeof globalThis & {
+  __SURVEY_TEXTS_CONFIG__?: SurveyTextsRuntimeConfig;
+};
+let resolvedTextsSourceMode: TextsSourceMode | undefined;
+
+function normalizeTextsSourceMode(value: string | null | undefined): TextsSourceMode | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const normalized = value.toLowerCase();
+  if (normalized === 'local' || normalized === 'remote' || normalized === 'auto') {
+    return normalized;
+  }
+  return undefined;
+}
+
+function readQueryTextsSourceMode(): TextsSourceMode | undefined {
+  if (typeof window === 'undefined') {
+    return undefined;
+  }
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return normalizeTextsSourceMode(params.get(TEXTS_SOURCE_QUERY_PARAM));
+  } catch (error) {
+    console.warn('Failed to parse texts source query parameter.', error);
+    return undefined;
+  }
+}
+
+function readStoredTextsSourceMode(): TextsSourceMode | undefined {
+  if (typeof window === 'undefined' || !window.localStorage) {
+    return undefined;
+  }
+  try {
+    const stored = window.localStorage.getItem(TEXTS_SOURCE_STORAGE_KEY);
+    return normalizeTextsSourceMode(stored);
+  } catch (error) {
+    console.warn('Failed to read stored texts source preference.', error);
+    return undefined;
+  }
+}
+
+function persistTextsSourceMode(mode: TextsSourceMode): void {
+  if (typeof window === 'undefined' || !window.localStorage) {
+    return;
+  }
+  try {
+    window.localStorage.setItem(TEXTS_SOURCE_STORAGE_KEY, mode);
+  } catch (error) {
+    console.warn('Failed to persist texts source preference.', error);
+  }
+}
+
+function readGlobalTextsSourceMode(): TextsSourceMode | undefined {
+  const globalConfig = (globalThis as GlobalWithSurveyTextsConfig).__SURVEY_TEXTS_CONFIG__;
+  return normalizeTextsSourceMode(globalConfig?.textsSource);
+}
+
+function getTextsSourceMode(): TextsSourceMode {
+  if (resolvedTextsSourceMode) {
+    return resolvedTextsSourceMode;
+  }
+
+  const queryMode = readQueryTextsSourceMode();
+  if (queryMode) {
+    persistTextsSourceMode(queryMode);
+    resolvedTextsSourceMode = queryMode;
+    return queryMode;
+  }
+
+  const globalMode = readGlobalTextsSourceMode();
+  if (globalMode) {
+    resolvedTextsSourceMode = globalMode;
+    return globalMode;
+  }
+
+  const storedMode = readStoredTextsSourceMode();
+  if (storedMode) {
+    resolvedTextsSourceMode = storedMode;
+    return storedMode;
+  }
+
+  resolvedTextsSourceMode = 'auto';
+  return resolvedTextsSourceMode;
+}
 
 function normalizeCsvUrl(url: string): string {
   if (!url || !url.includes('docs.google.com/spreadsheets')) {
@@ -92,13 +183,25 @@ function buildTextLookup(source: string): Record<string, string> {
 }
 
 async function loadTextsCsv(): Promise<string> {
-  if (!TEXTS_CSV_URL) {
-    console.log('No CSV URL, loading from local...');
+  const mode = getTextsSourceMode();
+  if (mode === 'local') {
+    console.log('Texts source forced to local CSV; skipping remote fetch.');
     return textsCsv;
   }
+
+  if (!TEXTS_CSV_URL) {
+    if (mode === 'remote') {
+      console.warn('Texts source forced to remote but no CSV URL is configured. Using bundled copy.');
+    } else {
+      console.log('No CSV URL, loading from local...');
+    }
+    return textsCsv;
+  }
+
   if (typeof fetch !== 'function') {
     return textsCsv;
   }
+
   const normalizedUrl = normalizeCsvUrl(TEXTS_CSV_URL);
   try {
     const response = await fetch(normalizedUrl, { cache: 'no-cache' });
@@ -504,4 +607,5 @@ export async function loadFallbackSurveyConfig(): Promise<SurveyConfig> {
 export function resetFallbackSurveyCaches(): void {
   cachedSurveyConfig = undefined;
   cachedTexts = undefined;
+  resolvedTextsSourceMode = undefined;
 }
