@@ -363,7 +363,7 @@ function createInstancePages(texts: Record<string, string>): SurveyPageConfig[] 
           id: `instance-${instanceId}-${ruleId}-${explanationId}`,
           props: {
             title: texts['fallback.pages:instance:title'],
-            introText: `${introByType[ruleId]}${ruleExplanationByType[explanationId] ? '\n' : ''}${ruleExplanationByType[explanationId]?.[ruleId] ?? ''}`,
+            introText: `${introByType[ruleId].replaceAll("{days}", days.length.toString())}${ruleExplanationByType[explanationId] ? '\n' : ''}${ruleExplanationByType[explanationId]?.[ruleId] ?? ''}`,
             showResultsExplanation: shouldShowResultsExplanation(explanationId, explanations),
             voters: instanceVoters[instanceId] ?? [],
             explanations,
