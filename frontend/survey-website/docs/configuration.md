@@ -94,6 +94,22 @@ The fallback configuration attempts to pull `texts.csv` from Google Sheets when 
 
 When the mode resolves to `local`, the app never issues the Google Sheets request, eliminating the startup delay; `remote` guarantees the request is attempted (still falling back to the bundled CSV if it fails).
 
+### Updating the Bundled CSV
+
+To refresh `src/config/texts.csv` with the latest Google Sheets content, run the helper script from the repo root:
+
+```bash
+python scripts/update_texts_csv.py --url "https://docs.google.com/spreadsheets/d/..."
+```
+
+- If you omit `--url`, the script looks for `VITE_TEXTS_CSV_URL` in the environment, in `.env.local`, `.env`, and `.env.development` (in that order).
+- If you omit `--url`, the script first checks your shell environment and then scans `.env.local`, `.env`, and `.env.development` inside both the repo root and `frontend/survey-website/` (in that order).
+- Pass `--gid <sheetTabId>` when you need to target a non-default tab in the workbook.
+- Use `--output` to write to a different file (for example when preparing a patch without overwriting your working copy).
+- Add extra `--env-file` entries if your URL lives in another dotenv file.
+
+The command downloads the CSV export, normalizes the Google Sheets share link to an export URL, and only overwrites `texts.csv` when the content actually changes.
+
 ## Completion Payload Display
 
 By default the post-submission screen hides the JSON payload that used to be echoed into `<code id="survey-complete">`. You can re-enable it through:

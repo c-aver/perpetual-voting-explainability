@@ -61,7 +61,7 @@ fallback.pages:perpetual-demo:introText,"במחקר זה עליכם לענות �
 fallback.pages:perpetual-demo:voters:1:label,מצביע 1
 fallback.pages:perpetual-demo:voters:2:label,מצביע 2
 fallback.pages:perpetual-demo:voters:3:label,מצביע 3
-fallback.pages:perpetual-demo:explanations:0,"ניתן לראות שסטודנט 3 מעוניין להזמין אוכל ממסעדה A, וסטודנטים 1 ו-2 מעוניינים להזמין ממסעדה A או B.\n בנוסף ניתן לראות שהאפשרות המנצחת על פי חוק הבחירות הייתה מסעדה A.\n לחצו על הכפתור על מנת להתקדם לימים הבאים."
+fallback.pages:perpetual-demo:explanations:0,"ניתן לראות שסטודנט 3 מעוניין להזמין אוכל ממסעדה C, וסטודנטים 1 ו-2 מעוניינים להזמין ממסעדה A או B.\n בנוסף ניתן לראות שהאפשרות המנצחת על פי חוק הבחירות הייתה מסעדה A.\n לחצו על הכפתור על מנת להתקדם לימים הבאים."
 fallback.pages:perpetual-demo:explanations:1,
 fallback.pages:perpetual-demo:explanations:2,
 fallback.pages:perpetual-demo:explanations:3,
