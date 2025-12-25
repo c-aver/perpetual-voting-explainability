@@ -4,5 +4,5 @@
  * to control where the fallback texts CSV is fetched from.
  */
 window.__SURVEY_TEXTS_CONFIG__ = {
-  textsSource: 'local',
+  textsSource: 'auto',
 };
