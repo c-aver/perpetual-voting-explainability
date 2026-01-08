@@ -28,6 +28,7 @@ PREFIX_QUESTIONS = [
     'perpetual-demo',
     'knowledge-check',
     'overview',
+    'instance-simple-approval-none',    # TODO: change instance page to correct constant instance
 ]
 POSTFIX_QUESTIONS = [
     'feedback',

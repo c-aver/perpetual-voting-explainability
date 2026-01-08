@@ -13,7 +13,7 @@ import type {
 import type { PageDescriptor } from '../pagination/types.ts';
 
 const DEFAULT_RTL_LOCALES = ['ar', 'fa', 'he', 'ur'];
-const ORDERING_PREFIX_PAGE_IDS = ['intro', 'demographic', 'perpetual-demo', 'knowledge-check', 'overview'];
+const ORDERING_PREFIX_PAGE_IDS = ['intro', 'demographic', 'perpetual-demo', 'knowledge-check', 'overview', 'instance-simple-approval-none']; // TODO: change instance page to correct constant instance
 const ORDERING_POSTFIX_PAGE_IDS = ['feedback', 'thank-you'];
 const RANDOMIZED_INSTANCE_COUNT = 4;
 const INSTANCE_ID_POOL = ['simple', 'complicated', 'few_rounds'];
@@ -311,7 +311,7 @@ function collectPagesById(pages: PageDescriptor[], ids: string[]): PageDescripto
     .filter((page): page is PageDescriptor => Boolean(page));
 }
 
-function annotateInstanceQuestionNumbers(pages: PageDescriptor[]): void {
+function annotateInstanceQuestionNumbers(pages: PageDescriptor[]): void { // TODO: (not necessarily here) change it so that generated constant first instance does not include rule name
   let index = 0;
   for (const descriptor of pages) {
     if (!isGeneratedInstancePage(descriptor)) {
