@@ -533,6 +533,19 @@ function createBasePages(texts: Record<string, string>): SurveyPageConfig[] {
             outputKey: ['responses', 'coalition'],
           },
           {
+            id: 'preference',
+            prompt: texts['fallback.pages:quiz:questions:preference:prompt'],
+            variant: 'select',
+            required: true,
+            placeholder: texts['fallback.pages:quiz:questions:preference:placeholder'],
+            options: [
+              { value: 'y', label: texts['fallback.pages:quiz:questions:preference:option:y'] },
+              { value: 'n', label: texts['fallback.pages:quiz:questions:preference:option:n'] },
+            ],
+            correctAnswer: 'n',
+            outputKey: ['responses', 'preference'],
+          },
+          {
             id: 'number-of-winners',
             prompt: texts['fallback.pages:quiz:questions:number-of-winners:prompt'],
             variant: 'numeric',
