@@ -13,7 +13,7 @@ import type {
 import type { PageDescriptor } from '../pagination/types.ts';
 
 const DEFAULT_RTL_LOCALES = ['ar', 'fa', 'he', 'ur'];
-const ORDERING_PREFIX_PAGE_IDS = ['intro', 'demographic', 'perpetual-demo', 'knowledge-check', 'overview', 'instance-simple-approval-none']; // TODO: change instance page to correct constant instance
+const ORDERING_PREFIX_PAGE_IDS = ['intro', 'demographic', 'perpetual-demo', 'knowledge-check', 'overview', 'instance-constant-approval-none'];
 const ORDERING_POSTFIX_PAGE_IDS = ['feedback', 'thank-you'];
 const RANDOMIZED_INSTANCE_COUNT = 4;
 const INSTANCE_ID_POOL = ['simple', 'complicated', 'few_rounds'];
@@ -347,7 +347,7 @@ function isGeneratedInstancePage(
   const ruleId = parts[2];
   const explanationId = parts.slice(3).join('-');
 
-  return INSTANCE_ID_POOL.includes(instanceId)
+  return (INSTANCE_ID_POOL.includes(instanceId) || instanceId == 'constant')
     && RULE_ID_POOL.includes(ruleId)
     && EXPLANATION_ID_POOL.includes(explanationId);
 }

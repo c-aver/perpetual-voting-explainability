@@ -92,7 +92,6 @@ async function bootstrap(): Promise<void> {
 			};
 			const submissionJson = JSON.stringify(submission, null, 2);
 			const submitEndpoint = resolveSubmitEndpoint();
-			// TODO: make this more configurable.
 			const completionCopy = config.copy.completion;
 
 			const shouldShowCompletionPayload = resolveCompletionDisplayFlag();

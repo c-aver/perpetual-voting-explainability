@@ -28,7 +28,7 @@ PREFIX_QUESTIONS = [
     'perpetual-demo',
     'knowledge-check',
     'overview',
-    'instance-simple-approval-none',    # TODO: change instance page to correct constant instance
+    'instance-constant-approval-none',
 ]
 POSTFIX_QUESTIONS = [
     'feedback',
@@ -119,7 +119,6 @@ def save_response(response, hashed_ip: str | None = None):
         data = load_responses()
     except StorageError:
         raise
-    # TODO: store IP?
     submission_time = datetime.now().astimezone().isoformat()
     stored_response = {
         'survey-response': response,

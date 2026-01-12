@@ -10,7 +10,7 @@ import textsCsv from './texts.csv?raw';
 const TEXTS_CSV_URL = import.meta.env.VITE_TEXTS_CSV_URL;
 const questionOrderingSource = resolveQuestionOrderEndpoint();
 
-const instanceIds = ['simple', 'complicated', 'few_rounds'];
+const instanceIds = ['simple', 'complicated', 'few_rounds', 'constant'];
 const ruleIds = ['approval', 'unit_cost', 'equal_shares', 'phragmen'];
 const explanationIds = ['none', 'mechanical', 'instance_based'];
 
@@ -363,7 +363,8 @@ function createInstancePages(texts: Record<string, string>): SurveyPageConfig[] 
           id: `instance-${instanceId}-${ruleId}-${explanationId}`,
           props: {
             title: texts['fallback.pages:instance:title'],
-            introText: `${introByType[ruleId].replaceAll("{days}", days.length.toString())}${ruleExplanationByType[explanationId] ? '\n' : ''}${ruleExplanationByType[explanationId]?.[ruleId] ?? ''}`,
+            introText: (instanceId == 'constant' ? texts['constant:intro'] : introByType[ruleId]).replaceAll("{days}", days.length.toString())
+              + (ruleExplanationByType[explanationId]?.[ruleId] ?? ''),
             showResultsExplanation: shouldShowResultsExplanation(explanationId, explanations),
             voters: instanceVoters[instanceId] ?? [],
             explanations,
