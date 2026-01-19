@@ -46,7 +46,7 @@ fallback.pages:quiz:questions:voter-3-satisfied:prompt,האם מצביע 3 מר�
 fallback.pages:quiz:questions:voter-3-satisfied:placeholder,בחרו כן או לא
 fallback.pages:quiz:questions:voter-3-satisfied:option:y,כן
 fallback.pages:quiz:questions:voter-3-satisfied:option:n,לא
-fallback.pages:quiz:questions:preference:prompt,האם מצביע 1 מעדיף את B על C ביום 5?
+fallback.pages:quiz:questions:preference:prompt,האם מצביע 1 סימן שהוא מעדיף את B על C ביום 5?
 fallback.pages:quiz:questions:preference:placeholder,בחרו כן או לא
 fallback.pages:quiz:questions:preference:option:y,כן
 fallback.pages:quiz:questions:preference:option:n,לא
@@ -65,7 +65,7 @@ fallback.pages:perpetual-demo:introText,"הנכם נדרשים לסייע לקב
 fallback.pages:perpetual-demo:voters:1:label,מצביע 1
 fallback.pages:perpetual-demo:voters:2:label,מצביע 2
 fallback.pages:perpetual-demo:voters:3:label,מצביע 3
-fallback.pages:perpetual-demo:explanations:0,"ניתן לראות שסטודנט 3 מעוניין להזמין אוכל ממסעדה C, וסטודנטים 1 ו-2 מעוניינים להזמין ממסעדה A או B.\n בנוסף ניתן לראות שהאפשרות המנצחת על פי חוק הבחירות הייתה מסעדה A.\n לחצו על הכפתור על מנת להתקדם לימים הבאים."
+fallback.pages:perpetual-demo:explanations:0,"ניתן לראות שסטודנט 3 מעוניין להזמין אוכל ממסעדה C, וסטודנטים 1 ו- 2 מעוניינים להזמין ממסעדה A או B.\nשימו לב שהסטודנטים לא מדרגים את המסעדות, אלא רק מסמנים איזה מסעדות מקובלות עליהם (בכל יום).\nבנוסף ניתן לראות שהאפשרות המנצחת על פי חוק הבחירות הייתה מסעדה A.\nלחצו על הכפתור על מנת להתקדם לימים הבאים."
 fallback.pages:perpetual-demo:explanations:1,
 fallback.pages:perpetual-demo:explanations:2,
 fallback.pages:perpetual-demo:explanations:3,
