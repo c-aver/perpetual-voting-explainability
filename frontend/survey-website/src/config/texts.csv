@@ -71,7 +71,7 @@ fallback.pages:perpetual-demo:explanations:2,
 fallback.pages:perpetual-demo:explanations:3,
 fallback.pages:perpetual-demo:explanations:4,
 fallback.pages:perpetual-demo:explanations:5,
-fallback.pages:perpetual-demo:rating:prompt,"לאחר שראיתם את כל ההצבעות ואת מה שחוק הבחירות החליט בכל יום, עליכם לדרג את תוצאות ההצבעה בסולם של 1 (לא הוגנות בכלל) עד 7 (הוגנות לגמרי).\nנסו לדרג עכשיו:"
+fallback.pages:perpetual-demo:rating:prompt,"אם אתם משתמשים במכשיר סלולרי כדי למלא את השאלון, תוכלו להחזיק אותו לרוחב כדי שתוכלו לראות את טבלת ההצבעות במלואה על המסך.\nלאחר שראיתם את כל ההצבעות ואת מה שחוק הבחירות החליט בכל יום, עליכם לדרג את תוצאות ההצבעה בסולם של 1 (לא הוגנות בכלל) עד 7 (הוגנות לגמרי).\nנסו לדרג עכשיו:"
 fallback.pages:perpetual-demo:rating:minLabel,לא הוגנות בכלל
 fallback.pages:perpetual-demo:rating:maxLabel,הוגנות לגמרי
 fallback.pages:thank-you:title,תודה רבה!
