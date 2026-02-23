@@ -167,15 +167,20 @@ def count_responses_per_question() -> dict[str, int]:
     response_counts: dict[str, int] = {}
     try:
         responses = load_responses()
+        print(f"Loaded {len(responses)} total responses")
         for response_data in responses:
-            response = response_data.get('survey-response', {})
+            survey_response = response_data.get('survey-response', {})
+            # The actual question responses are nested under 'responses' key
+            responses_dict = survey_response.get('responses', {})
             # Count responses for each question key that matches the instance-* pattern
-            for key in response.keys():
+            for key in responses_dict.keys():
                 if key.startswith('instance-'):
                     response_counts[key] = response_counts.get(key, 0) + 1
-    except Exception:
-        # If anything goes wrong reading responses, return empty dict (no preference)
-        pass
+        print(f"Found {len(response_counts)} unique question types with responses")
+    except Exception as e:
+        # If anything goes wrong reading responses, log and return empty dict (no preference)
+        app.logger.error(f"Error counting responses: {e}")
+        print(f"Error counting responses: {e}")
     return response_counts
 
 
@@ -194,6 +199,8 @@ def select_balanced_triple_block(response_counts: dict[str, int]) -> list[dict[s
     Fallback: If the greedy algorithm fails to find 4 triples, use random selection
     that respects constraints but ignores response counts.
     """
+    print(response_counts)
+
     selected = []
     used_rules: set[str] = set()
     instance_counts: dict[str, int] = {}
@@ -260,6 +267,14 @@ def select_balanced_triple_block(response_counts: dict[str, int]) -> list[dict[s
     if len(selected) < 4:
         app.logger.warning(f"Greedy selection only found {len(selected)} triples, using fallback random selection")
         return _fallback_random_triple_block()
+    
+    # Log the selection with response counts for transparency
+    selection_summary = []
+    for triple in selected:
+        q_id = f"instance-{triple['instanceId']}-{triple['ruleId']}-{triple['explanationId']}"
+        count = response_counts.get(q_id, 0)
+        selection_summary.append(f"{triple['ruleId']} ({count} responses)")
+    print(f"Selected questions: {', '.join(selection_summary)} - prioritizing low-response items for balanced coverage")
     
     # Randomize the order of presentation
     random.shuffle(selected)

@@ -406,8 +406,10 @@ def test_multiple_blocks_achieve_balance_over_time(server_module, tmp_path):
         # Add to responses file (simulating user submissions)
         response_data = {
             'survey-response': {
-                f"instance-{triple['instanceId']}-{triple['ruleId']}-{triple['explanationId']}": 'answer'
-                for triple in block
+                'responses': {
+                    f"instance-{triple['instanceId']}-{triple['ruleId']}-{triple['explanationId']}": 'answer'
+                    for triple in block
+                }
             },
             'submission-time': '2026-02-23T10:00:00+00:00'
         }
