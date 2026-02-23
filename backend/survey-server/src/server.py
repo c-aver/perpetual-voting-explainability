@@ -162,101 +162,220 @@ def _is_valid_triple_entry(entry: dict[str, str]) -> bool:
     )
 
 
-def _queue_entries_are_valid(entries):
-    if not isinstance(entries, list):
-        return False
-    return all(_is_valid_triple_entry(entry) for entry in entries)
-
-
-def load_triple_queue() -> list[dict[str, str]]:
+def count_responses_per_question() -> dict[str, int]:
+    """Count how many responses exist for each question type (instance-rule-explanation)."""
+    response_counts: dict[str, int] = {}
     try:
-        with open(triple_queue_file, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-    except FileNotFoundError:
-        return []
-    except json.JSONDecodeError:
-        return reset_triple_queue_file()
-
-    if not _queue_entries_are_valid(data):
-        return reset_triple_queue_file()
-    return data  # type: ignore[return-value]
-
-
-def persist_triple_queue(queue: list[dict[str, str]]) -> None:
-    queue_dir = os.path.dirname(triple_queue_file) or '.'
-    os.makedirs(queue_dir, exist_ok=True)
-    try:
-        with tempfile.NamedTemporaryFile('w', encoding='utf-8', delete=False, dir=queue_dir) as tmp_file:
-            json.dump(queue, tmp_file, ensure_ascii=False)
-            tmp_path = tmp_file.name
-        os.replace(tmp_path, triple_queue_file)
-    except OSError as error:
-        if 'tmp_path' in locals() and os.path.exists(tmp_path):
-            os.remove(tmp_path)
-        raise StorageError('Unable to write triple queue file.') from error
+        responses = load_responses()
+        for response_data in responses:
+            response = response_data.get('survey-response', {})
+            # Count responses for each question key that matches the instance-* pattern
+            for key in response.keys():
+                if key.startswith('instance-'):
+                    response_counts[key] = response_counts.get(key, 0) + 1
+    except Exception:
+        # If anything goes wrong reading responses, return empty dict (no preference)
+        pass
+    return response_counts
 
 
-def reset_triple_queue_file() -> list[dict[str, str]]:
-    fresh_queue = generate_triple_cycle()
-    persist_triple_queue(fresh_queue)
-    return fresh_queue
+def select_balanced_triple_block(response_counts: dict[str, int]) -> list[dict[str, str]]:
+    """
+    Select 4 triples (one per rule) prioritizing questions with fewer responses,
+    while ensuring all constraints are met:
+    - Each rule appears exactly once
+    - Each instance appears 1-2 times (at most one instance appears twice)
+    - Each explanation appears 1-2 times (at most one explanation appears twice)
+    
+    Algorithm: Iterate all possible triples sorted by response count (ascending).
+    For each triple, if adding it doesn't violate constraints, add it. Continue
+    until we have 4 triples, then shuffle the order.
+    
+    Fallback: If the greedy algorithm fails to find 4 triples, use random selection
+    that respects constraints but ignores response counts.
+    """
+    selected = []
+    used_rules: set[str] = set()
+    instance_counts: dict[str, int] = {}
+    explanation_counts: dict[str, int] = {}
+    
+    # Generate all possible triples sorted by response count (ascending)
+    all_triples: list[tuple[int, str, str, str]] = []
+    for rule in RULE_IDS:
+        for instance in VOTING_INSTANCE_IDS:
+            for explanation in EXPLANATION_IDS:
+                q_id = f"instance-{instance}-{rule}-{explanation}"
+                count = response_counts.get(q_id, 0)
+                all_triples.append((count, rule, instance, explanation))
+    
+    # Sort by response count (ascending) - least answered first
+    all_triples.sort(key=lambda x: x[0])
+    
+    # Greedily select triples
+    for count, rule, instance, explanation in all_triples:
+        # If we already have 4 triples, we're done
+        if len(selected) == 4:
+            break
+        
+        # Skip if rule already used (each rule must appear exactly once)
+        if rule in used_rules:
+            continue
+        
+        # Check instance constraint
+        current_instance_count = instance_counts.get(instance, 0)
+        instances_with_two = [i for i, c in instance_counts.items() if c == 2]
+        
+        # Can't add if this instance already has 2 appearances
+        if current_instance_count >= 2:
+            continue
+        
+        # If another instance already has 2, we can't increase a different instance to 2
+        # But we CAN add instances that haven't been selected (current_count == 0)
+        if instances_with_two and current_instance_count == 1 and instance not in instances_with_two:
+            continue
+        
+        # Check explanation constraint (same logic)
+        current_explanation_count = explanation_counts.get(explanation, 0)
+        explanations_with_two = [e for e, c in explanation_counts.items() if c == 2]
+        
+        # Can't add if this explanation already has 2 appearances
+        if current_explanation_count >= 2:
+            continue
+        
+        # If another explanation already has 2, we can't increase a different explanation to 2
+        if explanations_with_two and current_explanation_count == 1 and explanation not in explanations_with_two:
+            continue
+        
+        # All constraints satisfied, add this triple
+        selected.append({
+            'instanceId': instance,
+            'ruleId': rule,
+            'explanationId': explanation
+        })
+        used_rules.add(rule)
+        instance_counts[instance] = instance_counts.get(instance, 0) + 1
+        explanation_counts[explanation] = explanation_counts.get(explanation, 0) + 1
+    
+    # Fallback: if greedy selection failed, use random selection with constraints
+    if len(selected) < 4:
+        app.logger.warning(f"Greedy selection only found {len(selected)} triples, using fallback random selection")
+        return _fallback_random_triple_block()
+    
+    # Randomize the order of presentation
+    random.shuffle(selected)
+    return selected
 
 
-def generate_triple_cycle() -> list[dict[str, str]]:
-    blocks = [(u, v) for u in range(INSTANCE_VARIANT_COUNT) for v in range(EXPLANATION_VARIANT_COUNT)]
-    random.shuffle(blocks)
+def _fallback_random_triple_block() -> list[dict[str, str]]:
+    """
+    Fallback method: randomly select 4 valid triples that satisfy all constraints,
+    without regard to response counts.
+    """
+    selected = []
+    used_rules: set[str] = set()
+    instance_counts: dict[str, int] = {}
+    explanation_counts: dict[str, int] = {}
+    
+    # Generate all possible triples
+    all_triples: list[tuple[str, str, str]] = []
+    for rule in RULE_IDS:
+        for instance in VOTING_INSTANCE_IDS:
+            for explanation in EXPLANATION_IDS:
+                all_triples.append((rule, instance, explanation))
+    
+    # Shuffle to randomize order
+    random.shuffle(all_triples)
+    
+    # Select triples randomly while respecting constraints
+    for rule, instance, explanation in all_triples:
+        # If we already have 4 triples, we're done
+        if len(selected) == 4:
+            break
+        
+        # Skip if rule already used
+        if rule in used_rules:
+            continue
+        
+        # Check instance constraint
+        current_instance_count = instance_counts.get(instance, 0)
+        instances_with_two = [i for i, c in instance_counts.items() if c == 2]
+        
+        # Can't add if this instance already has 2 appearances
+        if current_instance_count >= 2:
+            continue
+        
+        # If another instance already has 2, we can't increase a different instance to 2
+        if instances_with_two and current_instance_count == 1 and instance not in instances_with_two:
+            continue
+        
+        # Check explanation constraint
+        current_explanation_count = explanation_counts.get(explanation, 0)
+        explanations_with_two = [e for e, c in explanation_counts.items() if c == 2]
+        
+        # Can't add if this explanation already has 2 appearances
+        if current_explanation_count >= 2:
+            continue
+        
+        # If another explanation already has 2, we can't increase a different explanation to 2
+        if explanations_with_two and current_explanation_count == 1 and explanation not in explanations_with_two:
+            continue
+        
+        # All constraints satisfied, add this triple
+        selected.append({
+            'instanceId': instance,
+            'ruleId': rule,
+            'explanationId': explanation
+        })
+        used_rules.add(rule)
+        instance_counts[instance] = instance_counts.get(instance, 0) + 1
+        explanation_counts[explanation] = explanation_counts.get(explanation, 0) + 1
+    
+    # Should have exactly 4 triples
+    if len(selected) != 4:
+        # This should not happen, but if it does, log and return what we have
+        app.logger.error(f"Fallback selection failed: only got {len(selected)} triples instead of 4")
+        # As a last resort, fill remaining slots with any valid random triple
+        while len(selected) < 4:
+            remaining_rules = [r for r in RULE_IDS if r not in used_rules] if used_rules else RULE_IDS
+            if not remaining_rules:
+                break
+            rule = random.choice(remaining_rules)
+            instance = random.choice(VOTING_INSTANCE_IDS)
+            explanation = random.choice(EXPLANATION_IDS)
+            selected.append({
+                'instanceId': instance,
+                'ruleId': rule,
+                'explanationId': explanation
+            })
+            used_rules.add(rule)
+    
+    random.shuffle(selected)
+    return selected
 
-    instance_perm = random.sample(range(INSTANCE_VARIANT_COUNT), INSTANCE_VARIANT_COUNT)
-    rule_perm = random.sample(range(RULE_VARIANT_COUNT), RULE_VARIANT_COUNT)
-    explanation_perm = random.sample(range(EXPLANATION_VARIANT_COUNT), EXPLANATION_VARIANT_COUNT)
-
-    cycle: list[dict[str, str]] = []
-    for (u, v) in blocks:
-        order = list(range(TRIPLE_BLOCK_SIZE))
-        random.shuffle(order)
-        for i in order:
-            a_idx = rule_perm[i]
-            b_idx = instance_perm[(i + u) % INSTANCE_VARIANT_COUNT]
-            c_idx = explanation_perm[(i + v) % EXPLANATION_VARIANT_COUNT]
-            cycle.append(
-                {
-                    'ruleId': RULE_IDS[a_idx],
-                    'instanceId': VOTING_INSTANCE_IDS[b_idx],
-                    'explanationId': EXPLANATION_IDS[c_idx],
-                },
-            )
-    return cycle
-
-
-def refill_triple_queue(queue: list[dict[str, str]], required_blocks: int) -> None:
-    total_needed = required_blocks * TRIPLE_BLOCK_SIZE
-    if len(queue) >= total_needed:
-        return
-
-    cycles_needed = max(
-        triple_queue_cycles_per_refill,
-        (total_needed - len(queue) + TRIPLE_CYCLE_SIZE - 1) // TRIPLE_CYCLE_SIZE,
-    )
-
-    new_triples: list[dict[str, str]] = []
-    for _ in range(cycles_needed):
-        new_triples.extend(generate_triple_cycle())
-    queue.extend(new_triples)
 
 
 def generate_question_triples(count: int = QUESTIONS_PER_REQUEST) -> list[dict[str, str]]:
+    """
+    Generate question triples for a participant, prioritizing questions with
+    fewer existing responses while ensuring coverage of all instances, rules, and explanations.
+    """
     if count % TRIPLE_BLOCK_SIZE != 0:
         raise ValueError(
             f'generate_question_triples count must be a multiple of {TRIPLE_BLOCK_SIZE} to preserve coverage guarantees.',
         )
 
-    queue = load_triple_queue()
+    response_counts = count_responses_per_question()
+    triples = []
+    
     blocks_needed = count // TRIPLE_BLOCK_SIZE
-    refill_triple_queue(queue, blocks_needed)
+    for _ in range(blocks_needed):
+        block = select_balanced_triple_block(response_counts)
+        triples.extend(block)
+        # Update response counts for subsequent blocks in this batch
+        for triple in block:
+            q_id = f"instance-{triple['instanceId']}-{triple['ruleId']}-{triple['explanationId']}"
+            response_counts[q_id] = response_counts.get(q_id, 0) + 1
 
-    triples = queue[:count]
-    del queue[:count]
-    persist_triple_queue(queue)
     return triples
 
 
